@@ -1,0 +1,119 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+'''convoread - a tool for using convore.com via CLI'''
+
+# Authors:
+#
+# * Andrey Vlasovskikh
+# * Alexander Solovyov
+# * Mikhail Krivushin
+# * Timofei Perevezentsev
+#
+# License: MIT
+
+from __future__ import unicode_literals, print_function
+
+import sys
+import base64
+import json
+import ssl
+from contextlib import closing
+from netrc import netrc
+
+PYTHON = sys.version_info[0]
+if PYTHON == 3:
+    from http.client import HTTPSConnection
+else:
+    from httplib import HTTPSConnection
+
+try:
+    import locale
+    ENCODING = locale.getpreferredencoding()
+    if not ENCODING or ENCODING == 'mac-roman' or 'ascii' in ENCODING.lower():
+        ENCODING = 'UTF-8'
+except locale.Error:
+    ENCODING = 'UTF-8'
+
+CONFIG = {
+    'HOSTNAME': 'convore.com',
+    'DEBUG': False,
+    'NETWORK_ENCODING': 'UTF-8',
+    'LIVE_URL': '/api/live.json',
+    'HTTP_TIMEOUT': 20,
+    }
+
+# Docs:
+#
+# * <https://convore.com/api/>
+
+# TODO:
+#
+# * First of all, implement an endless stream of messages to stdout
+
+def livestream(conn, login, password):
+    '''Return an iterable over live events (currently: messages).
+
+    HTTPConnection -> Iterable(object)
+    '''
+    headers = dict([authheader(login, password)])
+    cursor = 'null'
+    while True:
+        conn.request('GET', CONFIG['LIVE_URL'], headers=headers)
+        try:
+            r = conn.getresponse()
+        except ssl.SSLError: # timeout, nobody cares
+            continue
+        data = r.read().decode(CONFIG['NETWORK_ENCODING'])
+        event = json.loads(data)
+        
+        messages = event.get('messages', [])
+        if messages:
+            cursor = messages[-1].get('_id', 'null')
+        for m in messages:
+            yield m
+
+
+def display(message, fd):
+    if CONFIG['DEBUG']:
+        print(str(message).encode(ENCODING), file=fd)
+
+    kind = message['kind']
+    if kind in ('message', 'mention'):
+        s = '@{user}: {message}'.format(
+            user=message['user']['username'],
+            message=message['message'])
+    elif kind in ('login', 'logout'):
+        s = None
+    else:
+        s = message['kind']
+
+    if s is not None:
+        print(s.encode(ENCODING), file=fd)
+
+
+def authheader(login, password):
+    s = '%s:%s' % (login, password)
+    value = base64.b64encode(s.encode(CONFIG['NETWORK_ENCODING']))
+    return b'Authorization', b'Basic ' + value
+
+
+def config():
+    '''Read config for username and password'''
+    rc = netrc()
+    login, account, password = rc.authenticators(CONFIG['HOSTNAME'])
+    return login, password
+
+
+def main():
+    with closing(HTTPSConnection(CONFIG['HOSTNAME'],
+                                 timeout=CONFIG['HTTP_TIMEOUT'])) as conn:
+        login, password = config()
+        for msg in livestream(conn, login, password):
+            display(msg, sys.stdout)
+
+
+if __name__ == '__main__':
+    if '--debug' in sys.argv:
+        CONFIG['DEBUG'] = True
+    main()
