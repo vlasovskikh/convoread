@@ -15,17 +15,21 @@
 from __future__ import unicode_literals, print_function
 
 import sys
+import os
 import base64
 import json
 import ssl
+import traceback
 from contextlib import closing
 from netrc import netrc
 
 PYTHON = sys.version_info[0]
 if PYTHON == 3:
-    from http.client import HTTPSConnection
+    from http.client import HTTPSConnection, HTTPException
+    from urllib.parse import urlencode
 else:
-    from httplib import HTTPSConnection
+    from httplib import HTTPSConnection, HTTPException
+    from urllib import urlencode
 
 try:
     import locale
@@ -43,6 +47,9 @@ CONFIG = {
     'HTTP_TIMEOUT': 20,
     }
 
+stdout = None
+stderr = None
+
 # Docs:
 #
 # * <https://convore.com/api/>
@@ -50,6 +57,13 @@ CONFIG = {
 # TODO:
 #
 # * First of all, implement an endless stream of messages to stdout
+
+def debug(msg, exc=False):
+    if CONFIG['DEBUG']:
+        print('debug: {0}'.format(msg).encode(ENCODING),
+              file=stderr)
+        if exc:
+            traceback.print_exc()
 
 def livestream(conn, login, password):
     '''Return an iterable over live events (currently: messages).
@@ -59,14 +73,18 @@ def livestream(conn, login, password):
     headers = dict([authheader(login, password)])
     cursor = 'null'
     while True:
-        conn.request('GET', CONFIG['LIVE_URL'], headers=headers)
+        url = '{path}?{params}'.format(
+                  path=CONFIG['LIVE_URL'],
+                  params=urlencode({'cursor': cursor}))
+        conn.request('GET', url, headers=headers)
         try:
             r = conn.getresponse()
-        except ssl.SSLError: # timeout, nobody cares
+        except (HTTPException, ssl.SSLError):
+            debug('sending next request...', exc=True)
             continue
         data = r.read().decode(CONFIG['NETWORK_ENCODING'])
         event = json.loads(data)
-        
+
         messages = event.get('messages', [])
         if messages:
             cursor = messages[-1].get('_id', 'null')
@@ -75,8 +93,7 @@ def livestream(conn, login, password):
 
 
 def display(message, fd):
-    if CONFIG['DEBUG']:
-        print(str(message).encode(ENCODING), file=fd)
+    debug(str(message))
 
     kind = message['kind']
     if kind in ('message', 'mention'):
@@ -86,7 +103,7 @@ def display(message, fd):
     elif kind in ('login', 'logout'):
         s = None
     else:
-        s = message['kind']
+        s = kind
 
     if s is not None:
         print(s.encode(ENCODING), file=fd)
@@ -106,14 +123,23 @@ def config():
 
 
 def main():
+    global stdout, stderr
+    stdout = os.fdopen(sys.stdout.fileno(), 'wb')
+    stderr = os.fdopen(sys.stderr.fileno(), 'wb')
     with closing(HTTPSConnection(CONFIG['HOSTNAME'],
                                  timeout=CONFIG['HTTP_TIMEOUT'])) as conn:
         login, password = config()
         for msg in livestream(conn, login, password):
-            display(msg, sys.stdout)
+            try:
+                display(msg, stdout)
+            except KeyError:
+                debug(str(msg))
 
 
 if __name__ == '__main__':
     if '--debug' in sys.argv:
         CONFIG['DEBUG'] = True
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass

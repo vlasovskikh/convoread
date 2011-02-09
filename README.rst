@@ -13,3 +13,9 @@ wondering, what is standard for ``.netrc``::
 
   machine convore.com login your-username password your-password
 
+
+Compatibility
+-------------
+
+Requires Python >= 2.6 (including Python 3).
+
