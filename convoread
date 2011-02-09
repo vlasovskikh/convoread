@@ -96,11 +96,11 @@ def display(message, fd):
     debug(str(message))
 
     kind = message['kind']
-    if kind in ('message', 'mention'):
+    if kind == 'message':
         s = '@{user}: {message}'.format(
             user=message['user']['username'],
             message=message['message'])
-    elif kind in ('login', 'logout'):
+    elif kind in ('login', 'logout', 'mention'):
         s = None
     else:
         s = kind
