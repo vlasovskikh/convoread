@@ -1,0 +1,6 @@
+syntax:glob
+*.swp
+*.pyc
+build
+convoread.egg-info
+
