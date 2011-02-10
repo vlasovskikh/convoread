@@ -1,0 +1,4 @@
+- Make notifications work on OS X
+- Implement posting interface
+- Add configuration mechanics
+- Make a switch for notifications (all/only mentions)
