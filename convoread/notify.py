@@ -3,16 +3,6 @@
 
 '''convoread - a tool for using convore.com via CLI'''
 
-# Authors:
-#
-# * Andrey Vlasovskikh
-# * Alexander Solovyov
-# * Mikhail Krivushin
-# * Timofei Perevezentsev
-#
-# License: MIT
-
-
 initialized = False
 
 try:
@@ -21,6 +11,7 @@ try:
         initialized = True
 except ImportError:
     pass
+
 
 def notify_display(title, body):
     if not initialized:

@@ -3,15 +3,6 @@
 
 '''convoread - a tool for using convore.com via CLI'''
 
-# Authors:
-#
-# * Andrey Vlasovskikh
-# * Alexander Solovyov
-# * Mikhail Krivushin
-# * Timofei Perevezentsev
-#
-# License: MIT
-
 from __future__ import unicode_literals, print_function
 
 import sys
@@ -28,6 +19,8 @@ from getopt import getopt, GetoptError
 
 from notify import notify_display
 
+__version__ = '0.1'
+
 try:
     import locale
     ENCODING = locale.getpreferredencoding()
@@ -35,6 +28,7 @@ try:
         ENCODING = 'UTF-8'
 except locale.Error:
     ENCODING = 'UTF-8'
+
 
 config = {
     'HOSTNAME': 'convore.com',
@@ -47,9 +41,11 @@ config = {
 stdout = None
 stderr = None
 
+
 def debug(msg):
     if config['DEBUG']:
         print('debug: {0}'.format(msg).encode(ENCODING), file=stderr)
+
 
 def error(msg, exc=False):
     print('error: {0}'.format(msg).encode(ENCODING), file=stderr)
@@ -57,6 +53,7 @@ def error(msg, exc=False):
         print(b'Traceback:', file=stderr)
         for line in traceback.format_exc().splitlines():
             print(line.encode(ENCODING), file=stderr)
+
 
 def livestream(conn, login=None, password=None):
     '''Return an iterable over live messages.'''
@@ -94,6 +91,7 @@ def livestream(conn, login=None, password=None):
         for m in messages:
             yield m
 
+
 def display(message, fd):
     kind = message.get('kind', 'unknown')
     debug('got "{0}" message'.format(kind))
@@ -112,10 +110,12 @@ def display(message, fd):
         if config['NOTIFY']:
             notify_display(title, body)
 
+
 def authheader(login, password):
     s = '%s:%s' % (login, password)
     value = base64.b64encode(s.encode(config['NETWORK_ENCODING']))
     return b'Basic ' + value
+
 
 def getpasswd():
     '''Read config for username and password'''
@@ -126,6 +126,7 @@ def getpasswd():
         login, _, password = res
     return login, password
 
+
 def usage():
     print('''usage: convoread.py [OPTIONS]
 
@@ -135,7 +136,8 @@ options:
   --debug       show debug messages
 '''.encode(ENCODING), file=stderr)
 
-def main(argv):
+
+def worker(argv):
     try:
         opts, args = getopt(argv, b'h', [b'help', b'debug', b'notify'])
     except GetoptError, e:
@@ -160,12 +162,16 @@ def main(argv):
             except KeyError:
                 debug(str(msg))
 
-if __name__ == '__main__':
+
+def main():
+    global stdout, stderr
     stdout = os.fdopen(sys.stdout.fileno(), 'wb')
     stderr = os.fdopen(sys.stderr.fileno(), 'wb')
     try:
-        main(sys.argv[1:])
+        worker(sys.argv[1:])
     except KeyboardInterrupt:
         print('interrupted', file=stderr)
         pass
 
+if __name__ == '__main__':
+    main()
