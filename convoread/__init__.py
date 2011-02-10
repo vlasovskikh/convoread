@@ -33,9 +33,9 @@ except locale.Error:
 config = {
     'HOSTNAME': 'convore.com',
     'DEBUG': False,
-    'NOTIFY': False,
     'NETWORK_ENCODING': 'UTF-8',
     'LIVE_URL': '/api/live.json',
+    'GROUPS_URL': '/api/groups.json',
 }
 
 stdout = None
@@ -55,62 +55,94 @@ def error(msg, exc=False):
             print(line.encode(ENCODING), file=stderr)
 
 
-def livestream(conn, login=None, password=None):
-    '''Return an iterable over live messages.'''
-    headers = {}
-    if login is not None and password is not None:
-        headers[b'Authorization'] = authheader(login, password)
-    cursor = 'null'
-    while True:
-        params = {
-            'cursor': cursor,
-        }
-        url = '{path}?{params}'.format(
-                  path=config['LIVE_URL'],
-                  params=urlencode(params))
+class JSONValueError(Exception):
+    pass
+
+
+class HTTPBadStatusError(Exception):
+    pass
+
+
+class Convore(object):
+    def __init__(self, login=None, password=None):
+        self._connection = HTTPSConnection(config['HOSTNAME'])
+        self._headers = {}
+        if login is not None or password is not None:
+            self._headers[b'Authorization'] = authheader(login, password)
+        self.groups = self.get_groups()
+
+
+    def get_groups(self):
+        def groupid(g):
+            try:
+                return int(g.get('id'))
+            except ValueError:
+                return None
+        res = self._request('GET', config['GROUPS_URL'])
+        return dict((groupid(g), g) for g in res.get('groups', []))
+
+
+    def get_livestream(self):
+        '''Return an iterable over live messages.'''
+        cursor = 'null'
+        while True:
+            try:
+                event = self._request('GET',
+                                      config['LIVE_URL'],
+                                      {'cursor': cursor})
+            except JSONValueError, e:
+                error(unicode(e))
+                continue
+            except HTTPBadStatusError, e:
+                error(unicode(e))
+                continue
+
+            messages = event.get('messages', [])
+            if messages:
+                cursor = messages[-1].get('_id', 'null')
+            for m in messages:
+                yield m
+
+
+    def close(self):
+        self._connection.close()
+
+
+    def _request(self, method, url, params={}):
+        if params:
+            url = '{path}?{params}'.format(path=url,
+                                           params=urlencode(params))
         debug('GET {0} HTTP/1.1'.format(url))
-        conn.request('GET', url, headers=headers)
-        r = conn.getresponse()
+        self._connection.request(method, url, headers=self._headers)
+        r = self._connection.getresponse()
         if r.status // 100 != 2:
-            error('HTTP error {status} {reason}'.format(
-                status=r.status,
-                reason=r.reason))
-            conn.close()
-            conn.connect()
-            continue
-        data = r.read().decode(config['NETWORK_ENCODING'])
+            msg = 'HTTP error: {status} {reason}'.format(status=r.status,
+                                                         reason=r.reason)
+            self._connection.close()
+            self._connection.connect()
+            raise HTTPBadStatusError(msg)
         try:
-            event = json.loads(data)
+            data = r.read().decode(config['NETWORK_ENCODING'])
+            res = json.loads(data)
+            debug('response in json\n{msg}'.format(
+                msg=json.dumps(res, ensure_ascii=False, indent=4)))
+            return res
         except ValueError:
-            error('bad json string: {0}'.format(data))
-            continue
-
-        messages = event.get('messages', [])
-        if messages:
-            cursor = messages[-1].get('_id', 'null')
-        for m in messages:
-            yield m
+            raise JSONValueError('bad json string: {0}'.format(data))
 
 
-def display(message, fd):
-    kind = message.get('kind', 'unknown')
-    debug('got "{0}" message'.format(kind))
-    debug('message in json\n{msg}'.format(
-        msg=json.dumps(message, ensure_ascii=False, indent=4)))
+def console_display(convore, message, fd):
+    if message.get('kind') != 'message':
+        return
 
-    if kind == 'message':
-        title = '{time} @{user}'.format(
-            time=datetime.now().strftime('%H:%M'),
-            user=message.get('user', {}).get('username', '<anonymous>'),)
-        body = message.get('message', '<empty>')
-        s = '{0}: {1}'.format(title, body)
-    else:
-        s = None
-
-    if s is not None:
-        print(s.encode(ENCODING), file=fd)
-        if config['NOTIFY']:
-            notify_display(title, body)
+    group = convore.groups.get(message.get('group'), {})
+    title = '{time} !{group} @{user}'.format(
+        time=datetime.now().strftime('%H:%M'),
+        group=group.get('slug', '<unkonwn>'),
+        user=message.get('user', {}).get('username', '<anonymous>'),)
+    body = message.get('message', '<empty>')
+    s = '{0}: {1}'.format(title, body)
+    print(s.encode(ENCODING), file=fd)
 
 
 def authheader(login, password):
@@ -119,7 +151,7 @@ def authheader(login, password):
     return b'Basic ' + value
 
 
-def getpasswd():
+def get_passwd():
     '''Read config for username and password'''
     rc = netrc()
     login = password = None
@@ -148,6 +180,8 @@ def worker(argv):
         usage()
         sys.exit(1)
 
+    notify = False
+
     for opt, arg in opts:
         if opt in [b'-h', b'--help']:
             usage()
@@ -155,15 +189,18 @@ def worker(argv):
         elif opt == b'--debug':
             config['DEBUG'] = True
         elif opt == b'--notify':
-            config['NOTIFY'] = True
+            notify = True
 
-    with closing(HTTPSConnection(config['HOSTNAME'])) as conn:
-        login, password = getpasswd()
-        for msg in livestream(conn, login, password):
-            try:
-                display(msg, stdout)
-            except KeyError:
-                debug(str(msg))
+    login, password = get_passwd()
+
+    with closing(Convore(login, password)) as c:
+        for msg in c.get_livestream():
+            debug('got "{0}" message'.format(msg.get('kind', '<unknown>')))
+
+            console_display(c, msg, stdout)
+
+            if notify:
+                notify_display(c, msg)
 
 
 def main():
@@ -178,3 +215,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
