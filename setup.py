@@ -10,7 +10,7 @@ def read(fname):
 setup(
     name = 'convoread',
     description = 'Simple console reader for Convore',
-    long_description = read('README.rst').decode('utf-8'),
+    long_description = read('README.rst'),
     license = 'MIT',
     version = convoread.__version__,
     author = 'foobarbuzz group',

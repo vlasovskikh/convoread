@@ -70,7 +70,7 @@ Check that ``~/.local/bin`` is in your ``$PATH``.
 Requirements
 ~~~~~~~~~~~~
 
-* Python ≥ 2.6 (Python 3 has some issues yet)
+* Python >= 2.6 (Python 3 has some issues yet)
 
 Optional requirements:
 
