@@ -10,7 +10,6 @@ import os
 import base64
 import json
 import traceback
-import string
 from contextlib import closing
 from datetime import datetime
 from netrc import netrc
@@ -20,7 +19,7 @@ from getopt import getopt, GetoptError
 
 from notify import notify_display
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 try:
     import locale
@@ -163,7 +162,7 @@ def get_passwd():
     login = password = None
     res = rc.authenticators(config['HOSTNAME'])
     if res:
-        login, _, password = map(string.strip, res)
+        login, _, password = [s and s.strip() for s in res]
     return login, password
 
 
