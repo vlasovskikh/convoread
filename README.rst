@@ -10,7 +10,8 @@ Simple console reader for `Convore`_.
 Description
 -----------
 
-``convoread`` supports streaming live messages to the standard output.
+``convoread`` streams live Convore messages to the standard output or shows
+desktop notifications (only for Ubuntu and similar systems at this moment).
 
 Future versions will include posting messages, creating topics, and managing
 groups.
@@ -33,7 +34,7 @@ You can watch your live stream indefinitely::
 
 Press ``Ctrl+C`` to exit.
 
-You can also enable desktop notifications for Ubuntu and similar OSes that
+You can also enable desktop notifications for Ubuntu and similar systems that
 support ``libnotify``::
 
     $ convoread --notify
@@ -48,24 +49,32 @@ Installation
 
 You can install it from PyPI::
 
-    $ pip install convoread # add -U if you're updating it
+    $ pip install convoread
+
+Use ``-U`` option to upgrade to the latest version.
 
 Or you can clone it from GitHub and then use ``develop`` command to get it
-symlinked to your $PATH::
+symlinked to your system-wide ``$PATH``::
 
     $ git clone https://github.com/foobarbuzz/convoread.git
     $ cd convoread
-    $ ./setup.py develop
+    $ python setup.py develop
 
-Or just run it directly from repository::
+Or symlink it to your home directory only::
 
-    $ python convoread/__init__.py
+    $ python setup.py develop --user
+
+Check that ``~/.local/bin`` is in your ``$PATH``.
 
 
 Requirements
 ~~~~~~~~~~~~
 
 * Python ≥ 2.6 (Python 3 has some issues yet)
+
+Optional requirements:
+
+* pynotify (on some systems: python-notify) for desktop notifications
 
 
 Configuration
