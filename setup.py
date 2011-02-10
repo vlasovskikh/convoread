@@ -4,13 +4,16 @@ import os
 from setuptools import setup
 import convoread
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+def readme():
+    try:
+        return open(os.path.join(os.path.dirname(__file__), 'README.rst')).read()
+    except IOError:
+        return ''
 
 setup(
     name = 'convoread',
     description = 'Simple console reader for Convore',
-    long_description = read('README.rst'),
+    long_description = readme(),
     license = 'MIT',
     version = convoread.__version__,
     author = 'foobarbuzz group',

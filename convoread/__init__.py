@@ -19,7 +19,7 @@ from getopt import getopt, GetoptError
 
 from notify import notify_display
 
-__version__ = '0.2'
+__version__ = '0.3'
 
 try:
     import locale
