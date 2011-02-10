@@ -21,7 +21,7 @@ Usage
 
 You can watch your live stream indefinitely::
 
-    $ python convoread.py
+    $ convoread
     13:06 @user1: hello
     13:21 @user2: convoread works
     13:22 @user1: @user2 indeed!
@@ -31,11 +31,30 @@ Press ``Ctrl+C`` to exit.
 
 For more info on usage type::
 
-    $ python convoread.py --help
+    $ convoread --help
+
+
+Installation
+------------
+
+You can install it from PyPI::
+
+    $ pip install convoread # add -U if you're updating it
+
+Or you can clone it from GitHub and then use ``develop`` command to get it
+symlinked to your $PATH::
+
+    $ git clone https://github.com/foobarbuzz/convoread.git
+    $ cd convoread
+    $ ./setup.py develop
+
+Or just run it directly from repository::
+
+    $ python convoread/__init__.py
 
 
 Requirements
-------------
+~~~~~~~~~~~~
 
 * Python ≥ 2.6 (Python 3 has some issues yet)
 
