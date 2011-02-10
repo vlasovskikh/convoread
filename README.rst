@@ -4,6 +4,8 @@
 
 Simple console reader for `Convore`_.
 
+.. _Convore: https://convore.com/
+
 
 Description
 -----------
@@ -13,7 +15,9 @@ Description
 Future versions will include posting messages, creating topics, and managing
 groups.
 
-.. _Convore: https://convore.com/
+See `discussion`_ on Convore for ``convoread`` announcements, support, etc.
+
+.. _discussion: https://convore.com/feedback/convoread-simple-console-client-for-convore/
 
 
 Usage
