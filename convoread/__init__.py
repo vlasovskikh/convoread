@@ -84,12 +84,12 @@ class Convore(object):
 
     def get_livestream(self):
         '''Return an iterable over live messages.'''
-        cursor = 'null'
+        headers = {}
         while True:
             try:
                 event = self._request('GET',
                                       config['LIVE_URL'],
-                                      {'cursor': cursor})
+                                      headers)
             except JSONValueError, e:
                 error(unicode(e))
                 continue
@@ -99,7 +99,7 @@ class Convore(object):
 
             messages = event.get('messages', [])
             if messages:
-                cursor = messages[-1].get('_id', 'null')
+                headers['cursor'] = messages[-1].get('_id', 'null')
             for m in messages:
                 yield m
 
