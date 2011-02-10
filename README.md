@@ -19,9 +19,9 @@ Usage
 You can watch your live stream indefinitely:
 
     $ python convoread.py
-    @user1: hello
-    @user2: convoread works
-    @user1: @user2 indeed!
+    13:06 @user1: hello
+    13:21 @user2: convoread works
+    13:22 @user1: @user2 indeed!
     ^Cinterrupted
 
 Press `Ctrl+C` to exit.
