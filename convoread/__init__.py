@@ -156,7 +156,7 @@ def get_passwd():
     try:
         rc = netrc(os.path.expanduser('~/.netrc'))
     except IOError:
-        print("Please create .netrc in your home dir,"
+        error("create .netrc in your home dir, "
               " can't work without credentials")
         sys.exit(1)
     login = password = None
