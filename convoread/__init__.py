@@ -58,7 +58,7 @@ def get_passwd():
     login = password = None
     res = rc.authenticators(config['HOSTNAME'])
     if res:
-        login, _, password = map(string.strip, res)
+        login, password = res[0].strip(), res[2].strip()
     return login, password
 
 
