@@ -134,6 +134,7 @@ options:
 
   -h --help     show help
   --debug       show debug messages
+  --notify      show desktop notifications
 '''.encode(ENCODING), file=stderr)
 
 
