@@ -10,6 +10,7 @@ import os
 import base64
 import json
 import traceback
+import string
 from contextlib import closing
 from datetime import datetime
 from netrc import netrc
@@ -153,11 +154,16 @@ def authheader(login, password):
 
 def get_passwd():
     '''Read config for username and password'''
-    rc = netrc()
+    try:
+        rc = netrc(os.path.expanduser('~/.netrc'))
+    except IOError:
+        print("Please create .netrc in your home dir,"
+              " can't work without credentials")
+        sys.exit(1)
     login = password = None
     res = rc.authenticators(config['HOSTNAME'])
     if res:
-        login, _, password = res
+        login, _, password = map(string.strip, res)
     return login, password
 
 

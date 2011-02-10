@@ -70,6 +70,11 @@ Check that ``~/.local/bin`` is in your ``$PATH``.
 Requirements
 ~~~~~~~~~~~~
 
+.. note::
+
+  There are some problems with Windows, namely JSON is read partially by
+  httplib, no idea why
+
 * Python ≥ 2.6 (Python 3 has some issues yet)
 
 Optional requirements:
