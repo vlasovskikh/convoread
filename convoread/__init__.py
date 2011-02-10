@@ -9,6 +9,7 @@ import sys
 import os
 import traceback
 import multiprocessing
+import string
 from contextlib import closing
 from datetime import datetime
 from getopt import getopt, GetoptError
@@ -48,11 +49,16 @@ def console_display(convore, message, fd):
 
 def get_passwd():
     '''Read config for username and password'''
-    rc = netrc()
+    try:
+        rc = netrc(os.path.expanduser('~/.netrc'))
+    except IOError:
+        print("Please create .netrc in your home dir,"
+              " can't work without credentials")
+        sys.exit(1)
     login = password = None
     res = rc.authenticators(config['HOSTNAME'])
     if res:
-        login, _, password = res
+        login, _, password = map(string.strip, res)
     return login, password
 
 
@@ -106,8 +112,8 @@ class Reader(multiprocessing.Process):
 
 def main():
     global stdout, stderr
-    stdout = os.fdopen(sys.stdout.fileno(), 'wb')
-    stderr = os.fdopen(sys.stderr.fileno(), 'wb')
+    stdout = os.fdopen(sys.stdout.fileno(), 'wb', 0)
+    stderr = os.fdopen(sys.stderr.fileno(), 'wb', 0)
     try:
         reader = Reader(sys.argv[1:])
         reader.start()

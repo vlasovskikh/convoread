@@ -27,9 +27,9 @@ Usage
 You can watch your live stream indefinitely::
 
     $ convoread
-    13:06 @user1: hello
-    13:21 @user2: convoread works
-    13:22 @user1: @user2 indeed!
+    13:06 !mygroup @user1: hello
+    13:21 !mygroup @user2: convoread works
+    13:22 !mygroup @user1: @user2 indeed!
     ^Cinterrupted
 
 Press ``Ctrl+C`` to exit.
