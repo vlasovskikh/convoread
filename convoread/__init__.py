@@ -114,7 +114,7 @@ def main():
         input = Input()
         while True:
             input.dispatch(raw_input('>>> '))
-    except KeyboardInterrupt, InputExit:
+    except (KeyboardInterrupt, InputExit, EOFError):
         print('interrupted', file=stderr)
     finally:
         reader.do_read = False
