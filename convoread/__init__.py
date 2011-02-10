@@ -167,14 +167,17 @@ def get_passwd():
 
 
 def usage():
-    print('''usage: convoread.py [OPTIONS]
+    msg = '''usage: convoread [OPTIONS]
+
+convoread (version {version})
 
 options:
 
   -h --help     show help
   --debug       show debug messages
   --notify      show desktop notifications
-'''.encode(ENCODING), file=stderr)
+'''.format(version=__version__)
+    print(msg.encode(ENCODING), file=stderr)
 
 
 def worker(argv):
