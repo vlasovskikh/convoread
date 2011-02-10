@@ -211,8 +211,8 @@ def worker(argv):
 
 def main():
     global stdout, stderr
-    stdout = os.fdopen(sys.stdout.fileno(), 'wb')
-    stderr = os.fdopen(sys.stderr.fileno(), 'wb')
+    stdout = os.fdopen(sys.stdout.fileno(), 'wb', 0)
+    stderr = os.fdopen(sys.stderr.fileno(), 'wb', 0)
     try:
         worker(sys.argv[1:])
     except KeyboardInterrupt:
