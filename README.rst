@@ -33,6 +33,11 @@ You can watch your live stream indefinitely::
 
 Press ``Ctrl+C`` to exit.
 
+You can also enable desktop notifications for Ubuntu and similar OSes that
+support ``libnotify``::
+
+    $ convoread --notify
+
 For more info on usage type::
 
     $ convoread --help
