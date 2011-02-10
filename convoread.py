@@ -26,6 +26,8 @@ from httplib import HTTPSConnection
 from urllib import urlencode
 from getopt import getopt, GetoptError
 
+from notify import notify_display
+
 try:
     import locale
     ENCODING = locale.getpreferredencoding()
@@ -37,6 +39,7 @@ except locale.Error:
 config = {
     'HOSTNAME': 'convore.com',
     'DEBUG': False,
+    'NOTIFY': False,
     'NETWORK_ENCODING': 'UTF-8',
     'LIVE_URL': '/api/live.json',
 }
@@ -96,15 +99,18 @@ def display(message, fd):
     debug('got "{0}" message'.format(kind))
 
     if kind == 'message':
-        s = '{time} @{user}: {message}'.format(
+        title = '{time} @{user}'.format(
             time=datetime.now().strftime('%H:%M'),
-            user=message.get('user', {}).get('username', '<anonymous>'),
-            message=message.get('message', '<empty>'))
+            user=message.get('user', {}).get('username', '<anonymous>'),)
+        body = message.get('message', '<empty>')
+        s = '{0}: {1}'.format(title, body)
     else:
         s = None
 
     if s is not None:
         print(s.encode(ENCODING), file=fd)
+        if config['NOTIFY']:
+            notify_display(title, body)
 
 def authheader(login, password):
     s = '%s:%s' % (login, password)
@@ -131,17 +137,21 @@ options:
 
 def main(argv):
     try:
-        opts, args = getopt(argv, b'h', [b'help', b'debug'])
+        opts, args = getopt(argv, b'h', [b'help', b'debug', b'notify'])
     except GetoptError, e:
         error(bytes(e).decode(ENCODING, errors='replace'))
         usage()
         sys.exit(1)
+
     for opt, arg in opts:
         if opt in [b'-h', b'--help']:
             usage()
             sys.exit(0)
         elif opt == b'--debug':
             config['DEBUG'] = True
+        elif opt == b'--notify':
+            config['NOTIFY'] = True
+
     with closing(HTTPSConnection(config['HOSTNAME'])) as conn:
         login, password = getpasswd()
         for msg in livestream(conn, login, password):
