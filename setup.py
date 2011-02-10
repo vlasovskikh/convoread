@@ -17,7 +17,8 @@ setup(
     author_email = 'foobarbuzz@googlegroups.com',
 
     url = 'https://github.com/foobarbuzz/convoread',
-    download_url = 'git+https://github.com/foobarbuzz/convoread.git',
+    download_url = ('git+https://github.com/foobarbuzz/convoread.git'
+                    '#egg=convoread-%s' % convoread.__version__) ,
 
     classifiers = [
         'Environment :: Console',
