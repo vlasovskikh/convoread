@@ -13,13 +13,12 @@ import string
 from contextlib import closing
 from datetime import datetime
 from getopt import getopt, GetoptError
-from netrc import netrc
 
 from convore import Convore, JSONValueError, HTTPBadStatusError
 from config import config
 from notify import notify_display
 from input import Input, InputExit, send_message
-from utils import debug, error, stdout, stderr
+from utils import debug, error, get_passwd, stdout, stderr
 
 __version__ = '0.1'
 
@@ -45,21 +44,6 @@ def console_display(convore, message, fd):
     body = message.get('message', '<empty>')
     s = '{0}: {1}'.format(title, body)
     print(s.encode(ENCODING), file=fd)
-
-
-def get_passwd():
-    '''Read config for username and password'''
-    try:
-        rc = netrc(os.path.expanduser('~/.netrc'))
-    except IOError:
-        print("Please create .netrc in your home dir,"
-              " can't work without credentials")
-        sys.exit(1)
-    login = password = None
-    res = rc.authenticators(config['HOSTNAME'])
-    if res:
-        login, password = res[0].strip(), res[2].strip()
-    return login, password
 
 
 def usage():

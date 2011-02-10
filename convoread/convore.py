@@ -29,8 +29,7 @@ class Convore(object):
         if login is not None or password is not None:
             self._headers[b'Authorization'] = authheader(login, password)
         self.groups = self.get_groups()
-
-        self.topic_id = None
+        self.topics = self.get_topics(self.groups)
 
 
     def get_groups(self):
@@ -41,12 +40,25 @@ class Convore(object):
                 return None
         res = self._request('GET', config['GROUPS_URL'])
         return dict((groupid(g), g) for g in res.get('groups', []))
+
+
+    def get_topics(self, groups):
+        topics = {}
+        for group in groups:
+            gtopics = self._request('GET', config['TOPICS_URL'].format(group))
+            for topic in gtopics.get('topics', []):
+                topics[topic['id']] = topic
+        return topics
     
 
-    def send_message(self, msg):
-        res = self._request('POST',
-                convore_urls['CREATE_MSG_URL'].format(self.topic_id),
-                {'message': msg})
+    def send_message(self, topic, msg):
+        try:
+            res = self._request('POST',
+                    config['CREATE_MSG_URL'].format(topic),
+                    params={'message': msg})
+            print(res)
+        except HTTPBadStatusError:
+            print('Error')
 
 
     def get_livestream(self):
@@ -77,11 +89,15 @@ class Convore(object):
 
 
     def _request(self, method, url, params={}):
+        body = None
         if params:
-            url = '{path}?{params}'.format(path=url,
+            if method == 'GET':
+                url = '{path}?{params}'.format(path=url,
                                            params=urlencode(params))
+            else:
+                body = urlencode(params)
         debug('GET {0} HTTP/1.1'.format(url))
-        self._connection.request(method, url, headers=self._headers)
+        self._connection.request(method, url, body, headers=self._headers)
         r = self._connection.getresponse()
         if r.status // 100 != 2:
             msg = 'HTTP error: {status} {reason}'.format(status=r.status,
