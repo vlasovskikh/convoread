@@ -56,7 +56,6 @@ class Convore(object):
             res = self._request('POST',
                     config['CREATE_MSG_URL'].format(topic),
                     params={'message': msg})
-            print(res)
         except HTTPBadStatusError:
             print('Error')
 
