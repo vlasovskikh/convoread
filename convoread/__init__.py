@@ -95,6 +95,8 @@ def livestream(conn, login=None, password=None):
 def display(message, fd):
     kind = message.get('kind', 'unknown')
     debug('got "{0}" message'.format(kind))
+    debug('message in json\n{msg}'.format(
+        msg=json.dumps(message, ensure_ascii=False, indent=4)))
 
     if kind == 'message':
         title = '{time} @{user}'.format(
