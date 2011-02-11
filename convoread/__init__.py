@@ -83,7 +83,7 @@ class Reader(multiprocessing.Process):
 
                         if self.notify:
                             notifier.display(c, msg)
-        except KeyboardInterrupt:
+        except EOFError:
             pass
 
 def main():

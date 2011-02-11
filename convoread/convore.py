@@ -62,23 +62,25 @@ class Convore(object):
         headers = {}
         while True:
             try:
-                event = self._request('GET',
-                                      config['LIVE_URL'],
-                                      headers)
-            except NetworkError, e:
-                n = 5
-                error('{msg}, waiting for {n} secs...'.format(
-                          msg=unicode(e),
-                          n=n))
-                time.sleep(n)
-                continue
+                try:
+                    event = self._request('GET',
+                                          config['LIVE_URL'],
+                                          headers)
+                except NetworkError, e:
+                    n = 5
+                    error('{msg}, waiting for {n} secs...'.format(
+                              msg=unicode(e),
+                              n=n))
+                    time.sleep(n)
+                    continue
 
-            messages = event.get('messages', [])
-            if messages:
-                headers['cursor'] = messages[-1].get('_id', 'null')
-            for m in messages:
-                yield m
-
+                messages = event.get('messages', [])
+                if messages:
+                    headers['cursor'] = messages[-1].get('_id', 'null')
+                for m in messages:
+                    yield m
+            except KeyboardInterrupt:
+                pass
 
     def close(self):
         self._connection.close()
