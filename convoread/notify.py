@@ -40,10 +40,11 @@ class Notifier(object):
                 user=username)
             body = message.get('message', '<empty>')
             timeout = 15000
-        elif kind == 'login':
-            title = '@{user} logged in'.format(user=username)
-        elif kind == 'logout':
-            title = '@{user} logged out'.format(user=username)
+        # TODO: Presence notifications are too noisy
+        #elif kind == 'login':
+        #    title = '@{user} logged in'.format(user=username)
+        #elif kind == 'logout':
+        #    title = '@{user} logged out'.format(user=username)
         else:
             return
 
@@ -63,7 +64,7 @@ class Notifier(object):
 
         if not os.path.exists(path):
             # TODO: Use debug() to print HTTP GET
-            print('debug: GET {url} HTTP/1.1'.format(url=img), file=sys.stderr)
+            #print('debug: GET {url} HTTP/1.1'.format(url=img), file=sys.stderr)
             with closing(urlopen(img)) as src:
                 blocks = iter(lambda: src.read(4096), b'')
                 with closing(open(path, 'wb')) as dst:
@@ -76,7 +77,7 @@ class Notifier(object):
                 img.save(path)
             except ImportError, e:
                 # TODO: Show "install PIL" warning using error()
-                print('error: {0}'.format(e), file=sys.stderr)
+                #print('error: {0}'.format(e), file=sys.stderr)
                 pass
 
         return 'file://' + path
