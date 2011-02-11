@@ -4,7 +4,10 @@
 '''convoread - a tool for using convore.com via CLI'''
 
 from __future__ import unicode_literals, print_function
+
+import sys
 import os.path
+import traceback
 from netrc import netrc
 from config import config
 
