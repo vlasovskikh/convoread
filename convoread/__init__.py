@@ -86,13 +86,14 @@ class Reader(multiprocessing.Process):
         login, password = get_passwd()
 
         with closing(Convore(login, password)) as c:
-            for msg in c.get_livestream():
-                debug('got "{0}" message'.format(msg.get('kind', '<unknown>')))
+            with closing(Notifier()) as notifier:
+                for msg in c.get_livestream():
+                    debug('got "{0}" message'.format(msg.get('kind', '<unknown>')))
 
-                console_display(c, msg, stdout)
+                    console_display(c, msg, stdout)
 
-                if notify:
-                    notifier.display(c, msg)
+                    if notify:
+                        notifier.display(c, msg)
 
 
 def main():
