@@ -96,13 +96,13 @@ class Convore(object):
             else:
                 body = urlencode(params)
         debug('GET {0} HTTP/1.1'.format(url))
+        self._connection.connect()
         self._connection.request(method, url, body, headers=self._headers)
         r = self._connection.getresponse()
         if r.status // 100 != 2:
             msg = 'HTTP error: {status} {reason}'.format(status=r.status,
                                                          reason=r.reason)
             self._connection.close()
-            self._connection.connect()
             raise HTTPBadStatusError(msg)
         try:
             data = r.read().decode(config['NETWORK_ENCODING'])
