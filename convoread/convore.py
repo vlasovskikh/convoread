@@ -1,7 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-'''convoread - a tool for using convore.com via CLI'''
 
 from __future__ import unicode_literals, print_function
 
@@ -10,8 +7,8 @@ import json
 from httplib import HTTPSConnection
 from urllib import urlencode
 
-from config import config
-from utils import debug, error
+from convoread.config import config
+from convoread.utils import debug, error
 
 
 class JSONValueError(Exception):
@@ -49,7 +46,7 @@ class Convore(object):
             for topic in gtopics.get('topics', []):
                 topics[topic['id']] = topic
         return topics
-    
+
 
     def send_message(self, topic, msg):
         try:
@@ -99,8 +96,8 @@ class Convore(object):
         self._connection.request(method, url, body, headers=self._headers)
         r = self._connection.getresponse()
         if r.status // 100 != 2:
-            msg = 'HTTP error: {status} {reason}'.format(status=r.status,
-                                                         reason=r.reason)
+            msg = 'server error: {status} {reason}'.format(status=r.status,
+                                                           reason=r.reason)
             self._connection.close()
             raise HTTPBadStatusError(msg)
         try:

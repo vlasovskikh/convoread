@@ -100,10 +100,14 @@ def main():
     global stdout, stderr
     stdout = os.fdopen(sys.stdout.fileno(), 'wb', 0)
     stderr = os.fdopen(sys.stderr.fileno(), 'wb', 0)
+
     try:
         reader = Reader(sys.argv[1:])
         reader.start()
         input = Input()
+        print('welcome to convoread! '
+              'type /help for more info'.encode(ENCODING),
+              file=stderr)
         while True:
             input.dispatch(raw_input('>>> '))
     except (KeyboardInterrupt, InputExit, EOFError):

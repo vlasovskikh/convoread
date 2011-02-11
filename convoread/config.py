@@ -1,5 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+# TODO: Remove non-adjustable things like Convore URLs
 
 config = {
     'HOSTNAME': 'convore.com',

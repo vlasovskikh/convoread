@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''convoread - a tool for using convore.com via CLI'''
+from __future__ import unicode_literals, print_function
 
 from __future__ import unicode_literals, print_function
 import blinker

@@ -9,7 +9,9 @@ import sys
 import os.path
 import traceback
 from netrc import netrc
-from config import config
+
+from convoread.config import config
+
 
 stdout = None
 stderr = None
@@ -41,6 +43,4 @@ def get_passwd():
     if res:
         login, password = res[0].strip(), res[2].strip()
     return login, password
-
-
 

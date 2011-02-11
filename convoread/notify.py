@@ -19,11 +19,10 @@ from convoread.utils import error, debug
 
 class Notifier(object):
     def __init__(self):
-        self._tmpdir = mkdtemp()
-
         if not pynotify:
             return
 
+        self._tmpdir = mkdtemp()
         pynotify.init('Convoread')
 
     def display(self, convore, message):
@@ -88,11 +87,14 @@ class Notifier(object):
                 from PIL import Image
                 self._Image = Image
             except ImportError:
-                error('Python Imaging Library is not installed')
-                error('No avatars will be shown')
+                error('Python Imaging Library is not installed, '
+                      'no avatars will be shown')
                 self._Image = None
         return self._Image
 
     def close(self):
+        if not pynotify:
+            return
+
         rmtree(self._tmpdir)
 
