@@ -64,9 +64,14 @@ class Input(object):
 commands:
 
   /t [num]    list recent topics or switch to topic <num>
-  /q          quit convoread
-  /help       show help on commands''', file=stdout)
+  /help       show help on commands
+  /q          quit
 
+keys:
+
+  C-u         clear command line
+  C-d         quit
+''', file=stdout)
 
     def sendmsg(self, msg):
         if not self.topic:
