@@ -14,13 +14,13 @@ from contextlib import closing
 from datetime import datetime
 from getopt import getopt, GetoptError
 
-from convore import Convore, JSONValueError, HTTPBadStatusError
-from config import config
-from notify import notify_display
-from input import Input, InputExit, send_message
-from utils import debug, error, get_passwd, stdout, stderr
+from convoread.convore import Convore, JSONValueError, HTTPBadStatusError
+from convoread.config import config
+from convoread.input import Input, InputExit, send_message
+from convoread.utils import debug, error, get_passwd, stdout, stderr
+from convoread.notify import Notifier
 
-__version__ = '0.1'
+__version__ = '0.3'
 
 try:
     import locale
@@ -30,7 +30,6 @@ try:
 except locale.Error:
     ENCODING = 'UTF-8'
 config['ENCODING'] = ENCODING
-
 
 def console_display(convore, message, fd):
     if message.get('kind') != 'message':
@@ -47,14 +46,17 @@ def console_display(convore, message, fd):
 
 
 def usage():
-    print('''usage: convoread.py [OPTIONS]
+    msg = '''usage: convoread [OPTIONS]
+
+convoread (version {version})
 
 options:
 
   -h --help     show help
   --debug       show debug messages
   --notify      show desktop notifications
-'''.encode(ENCODING), file=stderr)
+'''.format(version=__version__)
+    print(msg.encode(ENCODING), file=stderr)
 
 
 class Reader(multiprocessing.Process):
@@ -72,7 +74,6 @@ class Reader(multiprocessing.Process):
             sys.exit(1)
 
         notify = False
-
         for opt, arg in opts:
             if opt in [b'-h', b'--help']:
                 usage()
@@ -91,7 +92,7 @@ class Reader(multiprocessing.Process):
                 console_display(c, msg, stdout)
 
                 if notify:
-                    notify_display(c, msg)
+                    notifier.display(c, msg)
 
 
 def main():

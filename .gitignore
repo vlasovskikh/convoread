@@ -2,3 +2,4 @@
 *.swp
 convoread.egg-info
 build
+dist
