@@ -31,6 +31,12 @@ except locale.Error:
     ENCODING = 'UTF-8'
 config['ENCODING'] = ENCODING
 
+try:
+    import readline
+except ImportError:
+    print('warning: readline module not available', file=sys.stderr)
+
+
 def console_display(convore, message, fd):
     username = message.get('user', {}).get('username', '<anonymous>')
     if message.get('kind') != 'message':
