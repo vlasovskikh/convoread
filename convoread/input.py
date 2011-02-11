@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals, print_function
 
-from convoread.convore import Convore
+from convoread.convore import Convore, NetworkError
 from convoread.config import config
 from convoread.utils import get_passwd, error, debug, stdout
 
@@ -75,7 +75,6 @@ commands:
         debug('sending "{0}"...'.format(msg))
         try:
             self.convore.send_message(self.topic, msg)
-        # TODO: Catch network-related exceptions only
-        except Exception, e:
+        except NetworkError, e:
             error(unicode(e))
 
