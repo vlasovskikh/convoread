@@ -2,10 +2,13 @@
 Changes
 =======
 
-0.4, 2011-02-xx
----------------
 
+0.4, TBD
+--------
+
+- Select topics and post new messages
 - Avatars in notifications
+
 
 0.3, 2011-02-11
 ---------------
