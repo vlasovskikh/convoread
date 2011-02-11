@@ -33,7 +33,6 @@ setup(
         ],
     platforms='any',
 
-    install_requires = ['blinker'],
     packages = ['convoread'],
     entry_points = {'console_scripts': ['convoread = convoread:main']},
     )

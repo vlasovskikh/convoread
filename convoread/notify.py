@@ -36,8 +36,8 @@ class Notifier(object):
         body = ''
         timeout = 5000
 
-        if kind == 'message':
-            group = convore.groups.get(message.get('group'), {})
+        if kind == 'message' and username != convore.username:
+            group = convore.get_groups().get(message.get('group'), {})
             title = '!{group} @{user}'.format(
                 group=group.get('slug', '<unkonwn>'),
                 user=username)

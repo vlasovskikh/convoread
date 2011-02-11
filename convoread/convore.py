@@ -17,30 +17,37 @@ class NetworkError(Exception):
 
 class Convore(object):
     def __init__(self, login=None, password=None):
+        self.username = login
         self._connection = HTTPSConnection(config['HOSTNAME'])
         self._headers = {}
+        self._groups = None
+        self._topics = None
         if login is not None or password is not None:
             self._headers[b'Authorization'] = authheader(login, password)
-        self.groups = self.get_groups()
-        self.topics = self.get_topics(self.groups)
-
 
     def get_groups(self):
+        if self._groups:
+            return self._groups
         def groupid(g):
             try:
                 return int(g.get('id'))
             except ValueError:
                 return None
-        res = self._request('GET', config['GROUPS_URL'])
-        return dict((groupid(g), g) for g in res.get('groups', []))
+        response = self._request('GET', config['GROUPS_URL'])
+        result = dict((groupid(g), g) for g in response.get('groups', []))
+        self._groups = result
+        return result
 
 
     def get_topics(self, groups):
+        if self._topics:
+            return self._topics
         topics = {}
         for group in groups:
             gtopics = self._request('GET', config['TOPICS_URL'].format(group))
             for topic in gtopics.get('topics', []):
                 topics[topic['id']] = topic
+        self._topics = topics
         return topics
 
 
