@@ -72,9 +72,10 @@ Requirements
 
 * Python >= 2.6 (Python 3 has some issues yet)
 
-Optional requirements:
+Optional:
 
 * pynotify (on some systems: python-notify) for desktop notifications
+* PIL (Python Imaging Library) for avatars in notifications
 
 
 Configuration
