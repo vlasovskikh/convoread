@@ -24,15 +24,38 @@ See `discussion`_ on Convore for ``convoread`` announcements, support, etc.
 Usage
 -----
 
-You can watch your live stream indefinitely::
+*This section describes the version 0.4 which is not released yet.*
+
+Run the program::
 
     $ convoread
+    welcome to convoread! type /help for more info
+    >
+
+You are now in ``convoread`` shell. You can just watch your live stream
+indefinitely::
+
     13:06 !mygroup @user1: hello
     13:21 !mygroup @user2: convoread works
     13:22 !mygroup @user1: @user2 indeed!
-    ^Cinterrupted
 
-Press ``Ctrl+C`` to exit.
+You can also list recent topics and send messages::
+
+    > /t
+       4393   pyquery - a jquery-like library for python
+       4383   Fate of PySide
+       3012   Configuring Vim for Python
+       3716   Multiprocessing & Socket Duplication
+       2412   Extensions I just can live without
+    > /t 3012
+    > hello vim community!
+    13:24 !vim @user1: hello vim community!
+    13:25 !vim @user3: welcome
+
+Press ``/q`` to exit::
+
+    > /q
+    quit
 
 You can also enable desktop notifications for Ubuntu and similar systems that
 support ``libnotify``::
@@ -47,11 +70,9 @@ For more info on usage type::
 Installation
 ------------
 
-You can install it from PyPI::
+You can install (or update) it from PyPI::
 
-    $ pip install convoread
-
-Use ``-U`` option to upgrade to the latest version.
+    $ pip install -U convoread
 
 Or you can clone it from GitHub and then use ``develop`` command to get it
 symlinked to your system-wide ``$PATH``::
