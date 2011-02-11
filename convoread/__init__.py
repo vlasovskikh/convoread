@@ -17,7 +17,7 @@ from httplib import HTTPSConnection
 from urllib import urlencode
 from getopt import getopt, GetoptError
 
-from notify import notify_display
+from convoread.notify import Notifier
 
 __version__ = '0.3'
 
@@ -202,13 +202,14 @@ def worker(argv):
     login, password = get_passwd()
 
     with closing(Convore(login, password)) as c:
-        for msg in c.get_livestream():
-            debug('got "{0}" message'.format(msg.get('kind', '<unknown>')))
+        with closing(Notifier()) as notifier:
+            for msg in c.get_livestream():
+                debug('got "{0}" message'.format(msg.get('kind', '<unknown>')))
 
-            console_display(c, msg, stdout)
+                console_display(c, msg, stdout)
 
-            if notify:
-                notify_display(c, msg)
+                if notify:
+                    notifier.display(c, msg)
 
 
 def main():
