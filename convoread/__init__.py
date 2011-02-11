@@ -14,7 +14,7 @@ from contextlib import closing
 from datetime import datetime
 from getopt import getopt, GetoptError
 
-from convoread.convore import Convore, JSONValueError, HTTPBadStatusError
+from convoread.convore import Convore
 from convoread.config import config
 from convoread.input import Input, InputExit, send_message
 from convoread.utils import debug, error, get_passwd, stdout, stderr

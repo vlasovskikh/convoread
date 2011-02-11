@@ -4,18 +4,14 @@ from __future__ import unicode_literals, print_function
 
 import base64
 import json
+import time
 from httplib import HTTPSConnection
 from urllib import urlencode
 
 from convoread.config import config
 from convoread.utils import debug, error
 
-
-class JSONValueError(Exception):
-    pass
-
-
-class HTTPBadStatusError(Exception):
+class NetworkError(Exception):
     pass
 
 
@@ -49,12 +45,9 @@ class Convore(object):
 
 
     def send_message(self, topic, msg):
-        try:
-            res = self._request('POST',
-                    config['CREATE_MSG_URL'].format(topic),
-                    params={'message': msg})
-        except HTTPBadStatusError:
-            print('Error')
+        self._request('POST',
+                      config['CREATE_MSG_URL'].format(topic),
+                      params={'message': msg})
 
 
     def get_livestream(self):
@@ -65,11 +58,12 @@ class Convore(object):
                 event = self._request('GET',
                                       config['LIVE_URL'],
                                       headers)
-            except JSONValueError, e:
-                error(unicode(e))
-                continue
-            except HTTPBadStatusError, e:
-                error(unicode(e))
+            except NetworkError, e:
+                n = 5
+                error('{msg}, waiting for {n} secs...'.format(
+                          msg=unicode(e),
+                          n=n))
+                time.sleep(n)
                 continue
 
             messages = event.get('messages', [])
@@ -99,7 +93,7 @@ class Convore(object):
             msg = 'server error: {status} {reason}'.format(status=r.status,
                                                            reason=r.reason)
             self._connection.close()
-            raise HTTPBadStatusError(msg)
+            raise NetworkError(msg)
         try:
             data = r.read().decode(config['NETWORK_ENCODING'])
             res = json.loads(data)
@@ -107,7 +101,7 @@ class Convore(object):
                 msg=json.dumps(res, ensure_ascii=False, indent=4)))
             return res
         except ValueError:
-            raise JSONValueError('bad json string: {0}'.format(data))
+            raise NetworkError('bad server response: {0}'.format(data))
 
 
 def authheader(login, password):
