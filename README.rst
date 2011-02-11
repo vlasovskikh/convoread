@@ -115,11 +115,12 @@ Authors
 
 * `Andrey Vlasovskikh`_
 * `Alexander Solovyov`_
-* Mikhail Krivushin
+* `Mikhail Krivushin`_
 * Timofei Perevezentsev
 
 .. _Andrey Vlasovskikh: http://pirx.ru/
 .. _Alexander Solovyov: http://piranha.org.ua/
+.. _Mikhail Krivushin: http://deepwalker.blogspot.com/
 
 
 License
