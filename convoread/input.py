@@ -67,8 +67,12 @@ class Input(object):
             self.topic = topic
             return
         count = 10
-        groups = self.convore.get_groups()
-        topics = self.convore.get_topics(groups)
+        try:
+            groups = self.convore.get_groups()
+            topics = self.convore.get_topics(groups)
+        except NetworkError, e:
+            error(unicode(e))
+            return
         recent = sorted(topics.itervalues(),
                         key=lambda x: x.get('date_latest_message'),
                         reverse=True)

@@ -27,6 +27,7 @@ import json
 import time
 from httplib import HTTPSConnection
 from urllib import urlencode
+import socket
 
 from convoread.config import config
 from convoread.utils import debug, error
@@ -89,7 +90,7 @@ class Convore(object):
                                           config['LIVE_URL'],
                                           headers)
                 except NetworkError, e:
-                    n = 5
+                    n = 10
                     error('{msg}, waiting for {n} secs...'.format(
                               msg=unicode(e),
                               n=n))
@@ -118,9 +119,18 @@ class Convore(object):
             else:
                 body = urlencode(params)
         debug('GET {0} HTTP/1.1'.format(url))
-        self._connection.connect()
-        self._connection.request(method, url, body, headers=self._headers)
-        r = self._connection.getresponse()
+        try:
+            self._connection.connect()
+        except socket.gaierror:
+            msg = 'cannot get network address for "{host}"'.format(
+                    host=self._connection.host)
+            raise NetworkError(msg)
+        try:
+            self._connection.request(method, url, body, headers=self._headers)
+            r = self._connection.getresponse()
+        except socket.error, e:
+            self._connection.close()
+            raise NetworkError(e.args[1])
         if r.status // 100 != 2:
             msg = 'server error: {status} {reason}'.format(status=r.status,
                                                            reason=r.reason)
