@@ -74,6 +74,10 @@ class Convore(object):
         return topics
 
 
+    def get_topic_messages(self, topic):
+        url = config['TOPIC_MESSAGES_URL'].format(topic)
+        return self._request('GET', url).get('messages', [])
+
     def send_message(self, topic, msg):
         self._request('POST',
                       config['CREATE_MSG_URL'].format(topic),

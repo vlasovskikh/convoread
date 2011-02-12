@@ -22,9 +22,11 @@
 
 from __future__ import unicode_literals, print_function
 
+from datetime import datetime
+
 from convoread.convore import Convore, NetworkError
 from convoread.config import config
-from convoread.utils import get_passwd, error, debug, stdout
+from convoread.utils import get_passwd, error, debug, stdout, wrap_string
 
 
 class Input(object):
@@ -84,11 +86,34 @@ class Input(object):
             print(msg.encode(config['ENCODING'], 'replace'), file=stdout)
 
 
+    def cmd_ls(self, topic):
+        try:
+            messages = self.convore.get_topic_messages(topic)
+        except NetworkError, e:
+            error(unicode(e))
+            return
+        for message in messages:
+            username = message.get('user', {}).get('username', '(unknown)')
+            try:
+                # TODO: Time is not in the local timezone now
+                created = datetime.fromtimestamp(message.get('date_created'))
+            except:
+                created = datetime.now()
+            title = '[{time}] <{user}>'.format(
+                time=created.strftime('%H:%M'),
+                user=username)
+            body = wrap_string(message.get('message', '(empty)'))
+
+            s = '{0}\n{1}\n'.format(title, body)
+            print(s.encode(config['ENCODING'], 'replace'), file=stdout)
+
+
     def cmd_help(self):
         print('''\
 commands:
 
   /t [num]    list recent topics or switch to topic <num>
+  /ls <num>   list recent messages in topic <num>
   /help       show help on commands
   /q          quit
 

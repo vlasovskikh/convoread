@@ -24,8 +24,9 @@
 from __future__ import unicode_literals, print_function
 
 import sys
-import os.path
+import os
 import traceback
+import textwrap
 from netrc import netrc
 
 from convoread.config import config
@@ -63,4 +64,7 @@ def get_passwd():
     if res:
         login, password = res[0].strip(), res[2].strip()
     return login, password
+
+def wrap_string(s, indent=4, width=75):
+    return '\n'.join((' ' * indent) + line for line in textwrap.wrap(s, width))
 

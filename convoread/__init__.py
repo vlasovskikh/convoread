@@ -30,15 +30,15 @@ import os
 import traceback
 import multiprocessing
 import string
-import textwrap
-from contextlib import closing
 from datetime import datetime
+from contextlib import closing
 from getopt import getopt, GetoptError
 
 from convoread.convore import Convore
 from convoread.config import config
 from convoread.input import Input
-from convoread.utils import debug, error, get_passwd, stdout, stderr
+from convoread.utils import (debug, error, get_passwd, stdout, stderr,
+                             wrap_string)
 from convoread.notify import Notifier
 
 __version__ = '0.4'
@@ -59,19 +59,19 @@ except ImportError:
 
 
 def console_display(convore, message, fd):
-    username = message.get('user', {}).get('username', '<anonymous>')
     if message.get('kind') != 'message':
         return
 
     group = convore.get_groups().get(message.get('group'), {})
+    username = message.get('user', {}).get('username', '(unknown)')
     title = '[{time}] {group}/{topic} <{user}>'.format(
         time=datetime.now().strftime('%H:%M'),
         group=group.get('slug', '(unkonwn)'),
         topic=message.get('topic', {}).get('id', '(unknown)'),
         user=username)
-    msg = message.get('message', '(empty)')
-    body = '\n'.join('    ' + line for line in textwrap.wrap(msg, 75))
-    s = '{0}\n{1}'.format(title, body)
+    body = wrap_string(message.get('message', '(empty)'))
+
+    s = '{0}\n{1}\n'.format(title, body)
     print(s.encode(ENCODING, 'relace'), file=fd)
 
 
