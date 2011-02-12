@@ -30,6 +30,7 @@ import os
 import traceback
 import multiprocessing
 import string
+import textwrap
 from contextlib import closing
 from datetime import datetime
 from getopt import getopt, GetoptError
@@ -63,12 +64,14 @@ def console_display(convore, message, fd):
         return
 
     group = convore.get_groups().get(message.get('group'), {})
-    title = '{time} !{group} @{user}'.format(
+    title = '[{time}] {group}/{topic} <{user}>'.format(
         time=datetime.now().strftime('%H:%M'),
-        group=group.get('slug', '<unkonwn>'),
+        group=group.get('slug', '(unkonwn)'),
+        topic=message.get('topic', {}).get('id', '(unknown)'),
         user=username)
-    body = message.get('message', '<empty>')
-    s = '{0}: {1}'.format(title, body)
+    msg = message.get('message', '(empty)')
+    body = '\n'.join('    ' + line for line in textwrap.wrap(msg, 75))
+    s = '{0}\n{1}'.format(title, body)
     print(s.encode(ENCODING, 'relace'), file=fd)
 
 
