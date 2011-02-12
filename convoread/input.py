@@ -104,6 +104,8 @@ keys:
             error('no topic set, type /help for more info')
             return
         msg = msg.strip()
+        if not msg:
+            return
         debug('sending "{0}"...'.format(msg))
         try:
             self.convore.send_message(self.topic, msg)
