@@ -23,7 +23,8 @@ class Notifier(object):
             return
 
         self._tmpdir = mkdtemp()
-        pynotify.init('Convoread')
+        pynotify.init('convoread')
+
 
     def display(self, convore, message):
         if not pynotify:
@@ -55,6 +56,7 @@ class Notifier(object):
         n.set_timeout(timeout)
         n.show()
 
+
     def imgpath(self, user):
         if not self.Image:
             return
@@ -80,6 +82,7 @@ class Notifier(object):
 
         return 'file://' + path
 
+
     @property
     def Image(self):
         if not hasattr(self, '_Image'):
@@ -91,6 +94,7 @@ class Notifier(object):
                       'no avatars will be shown')
                 self._Image = None
         return self._Image
+
 
     def close(self):
         if not pynotify:

@@ -11,6 +11,7 @@ from urllib import urlencode
 from convoread.config import config
 from convoread.utils import debug, error
 
+
 class NetworkError(Exception):
     pass
 
@@ -117,5 +118,4 @@ def authheader(login, password):
     s = '%s:%s' % (login, password)
     value = base64.b64encode(s.encode(config['NETWORK_ENCODING']))
     return b'Basic ' + value
-
 

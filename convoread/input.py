@@ -6,6 +6,7 @@ from convoread.convore import Convore, NetworkError
 from convoread.config import config
 from convoread.utils import get_passwd, error, debug, stdout
 
+
 class Input(object):
     def __init__(self):
         login, password = get_passwd()
@@ -72,6 +73,7 @@ keys:
   C-u         clear command line
   C-d         quit
 ''', file=stdout)
+
 
     def sendmsg(self, msg):
         if not self.topic:

@@ -71,6 +71,7 @@ class Reader(multiprocessing.Process):
         self.notify = notify
         super(Reader, self).__init__()
 
+
     def run(self):
         try:
             login, password = get_passwd()
@@ -85,6 +86,7 @@ class Reader(multiprocessing.Process):
                             notifier.display(c, msg)
         except EOFError:
             pass
+
 
 def main():
     global stdout, stderr
@@ -124,6 +126,7 @@ def main():
         print('quit', file=stderr)
     finally:
         reader.terminate()
+
 
 if __name__ == '__main__':
     main()
