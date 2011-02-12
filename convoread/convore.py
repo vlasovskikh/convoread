@@ -25,7 +25,7 @@ from __future__ import unicode_literals, print_function
 import base64
 import json
 import time
-from httplib import HTTPSConnection
+from httplib import HTTPSConnection, HTTPException
 from urllib import urlencode
 import socket
 
@@ -128,6 +128,10 @@ class Convore(object):
         try:
             self._connection.request(method, url, body, headers=self._headers)
             r = self._connection.getresponse()
+        except HTTPException, e:
+            self._connection.close()
+            raise NetworkError('HTTP request error: {0}'.format(
+                    type(e).__name__))
         except socket.error, e:
             self._connection.close()
             raise NetworkError(e.args[1])
