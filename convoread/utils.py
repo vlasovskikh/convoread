@@ -37,15 +37,17 @@ stderr = None
 
 def debug(msg):
     if config['DEBUG']:
-        print('debug: {0}'.format(msg).encode(config['ENCODING']), file=stderr)
+        print('debug: {0}'.format(msg).encode(config['ENCODING'], 'replace'),
+              file=stderr)
 
 
 def error(msg, exc=False):
-    print('error: {0}'.format(msg).encode(config['ENCODING']), file=stderr)
+    print('error: {0}'.format(msg).encode(config['ENCODING'], 'replace'),
+          file=stderr)
     if exc:
         print(b'Traceback:', file=stderr)
         for line in traceback.format_exc().splitlines():
-            print(line.encode(config['ENCODING']), file=stderr)
+            print(line.encode(config['ENCODING'], 'replace'), file=stderr)
 
 
 def get_passwd():

@@ -69,7 +69,7 @@ def console_display(convore, message, fd):
         user=username)
     body = message.get('message', '<empty>')
     s = '{0}: {1}'.format(title, body)
-    print(s.encode(ENCODING), file=fd)
+    print(s.encode(ENCODING, 'relace'), file=fd)
 
 
 def usage():

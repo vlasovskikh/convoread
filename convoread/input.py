@@ -77,7 +77,7 @@ class Input(object):
                 mark='*' if t.get('id', '?') == self.topic else ' ',
                 id=t.get('id', '?'),
                 name=t.get('name', '<unknown>'))
-            print(msg.encode(config['ENCODING']), file=stdout)
+            print(msg.encode(config['ENCODING'], 'replace'), file=stdout)
 
 
     def cmd_help(self):
