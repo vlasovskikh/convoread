@@ -3,11 +3,13 @@ Changes
 =======
 
 
-0.4, TBD
---------
+0.4, 2011-02-12
+---------------
 
-- Select topics and post new messages
+- Commands for selecting topics and posting new messages
+- Improved message formatting
 - Avatars in notifications
+- Various bug fixes
 
 
 0.3, 2011-02-11

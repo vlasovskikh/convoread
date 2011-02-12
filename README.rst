@@ -4,6 +4,8 @@
 
 Simple console reader for `Convore`_.
 
+Latest version: 0.4, 2011-02-12.
+
 .. _Convore: https://convore.com/
 
 
@@ -24,8 +26,6 @@ See `discussion`_ on Convore for ``convoread`` announcements, support, etc.
 Usage
 -----
 
-*This section describes the version 0.4 which is not released yet.*
-
 Run the program::
 
     $ convoread
@@ -35,9 +35,12 @@ Run the program::
 You are now in ``convoread`` shell. You can just watch your live stream
 indefinitely::
 
-    13:06 !mygroup @user1: hello
-    13:21 !mygroup @user2: convoread works
-    13:22 !mygroup @user1: @user2 indeed!
+    [13:06] mygroup/1234 <user1>
+        hello
+    [13:21] mygroup/1234 <user2>
+        convoread works
+    [13:22] mygroup/1234 <user1>
+        @user2 indeed!
 
 You can also list recent topics and send messages::
 
@@ -49,8 +52,10 @@ You can also list recent topics and send messages::
        2412   Extensions I just can live without
     > /t 3012
     > hello vim community!
-    13:24 !vim @user1: hello vim community!
-    13:25 !vim @user3: welcome
+    [13:24] vim/3012 <user1>
+        hello vim community!
+    [13:25] vim/3012 <user3>
+        welcome
 
 Press ``/q`` to exit::
 
