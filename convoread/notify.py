@@ -101,7 +101,7 @@ class Notifier(object):
             img.thumbnail((64, 64), self.Image.ANTIALIAS)
             img.save(path)
 
-        return 'file://' + path
+        return path
 
 
     @property
