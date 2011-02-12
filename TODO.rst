@@ -1,10 +1,10 @@
 TODO List
 =========
 
-- Design a CLI read-write interface
-- Implement message posting
+- Synchronize output from reader and writer to stdout
 - Add configuration mechanics
-- Add message filtering by group and/or topic
+- Add message and notification filtering by group and/or topic
+- Show unread message count for topics
+- Command to print recent N messages in topics
 - Make notifications work on OS X
-- Make a switch for notifications (all/only mentions)
 
