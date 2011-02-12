@@ -46,6 +46,7 @@ class Convore(object):
         if login is not None or password is not None:
             self._headers[b'Authorization'] = authheader(login, password)
 
+
     def get_groups(self):
         if self._groups:
             return self._groups
@@ -102,6 +103,7 @@ class Convore(object):
                     yield m
             except KeyboardInterrupt:
                 pass
+
 
     def close(self):
         self._connection.close()
