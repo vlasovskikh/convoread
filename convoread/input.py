@@ -86,7 +86,13 @@ class Input(object):
             print(msg.encode(config['ENCODING'], 'replace'), file=stdout)
 
 
-    def cmd_ls(self, topic):
+    def cmd_ls(self, topic=None):
+        if not topic:
+            if self.topic:
+                topic = self.topic
+            else:
+                error('no topic set, type /help for more info')
+                return
         try:
             messages = self.convore.get_topic_messages(topic)
         except NetworkError, e:
@@ -113,7 +119,7 @@ class Input(object):
 commands:
 
   /t [num]    list recent topics or switch to topic <num>
-  /ls <num>   list recent messages in topic <num>
+  /ls [num]   list recent messages in topic (current or <num>)
   /help       show help on commands
   /q          quit
 
