@@ -4,7 +4,7 @@
 
 Simple console reader for `Convore`_.
 
-Latest version: 0.4, 2011-02-12.
+Latest version: 0.3, 2011-02-11.
 
 .. _Convore: https://convore.com/
 
@@ -25,6 +25,8 @@ See `discussion`_ on Convore for ``convoread`` announcements, support, etc.
 
 Usage
 -----
+
+*This section is about the forthcoming version 0.4. Stay tuned!*
 
 Run the program::
 
