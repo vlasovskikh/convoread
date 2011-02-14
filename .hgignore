@@ -2,5 +2,6 @@ syntax:glob
 *.swp
 *.pyc
 build
+dist
 convoread.egg-info
 

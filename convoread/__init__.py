@@ -41,7 +41,7 @@ from convoread.utils import (debug, error, get_passwd, stdout, stderr,
                              wrap_string)
 from convoread.notify import Notifier
 
-__version__ = '0.4'
+__version__ = b'0.4'
 
 try:
     import locale
