@@ -118,10 +118,11 @@ class Input(object):
         print('''\
 commands:
 
-  /t [num]    list recent topics or switch to topic <num>
+  /t [num]    list recent topics or set current topic to <num>
   /ls [num]   list recent messages in topic (current or <num>)
   /help       show help on commands
   /q          quit
+  <text>      post a new message
 
 keys:
 
