@@ -3,8 +3,8 @@ Changes
 =======
 
 
-0.4, TBD
---------
+0.4, 2011-02-14
+---------------
 
 - Post new messages
 - Command ``/t`` for selecting topics

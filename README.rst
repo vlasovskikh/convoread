@@ -4,7 +4,7 @@
 
 Simple console reader for `Convore`_.
 
-Latest version: 0.3, 2011-02-11.
+Latest version: 0.4, 2011-02-14.
 
 .. _Convore: https://convore.com/
 
@@ -26,8 +26,6 @@ See `discussion`_ on Convore for ``convoread`` announcements, support, etc.
 Usage
 -----
 
-*This section is about the forthcoming version 0.4. Stay tuned!*
-
 Run the program::
 
     $ convoread
@@ -39,8 +37,10 @@ indefinitely::
 
     [13:06] mygroup/1234 <user1>
         hello
+
     [13:21] mygroup/1234 <user2>
         convoread works
+
     [13:22] mygroup/1234 <user1>
         @user2 indeed!
 
@@ -50,12 +50,13 @@ You can also list recent topics and send messages::
        4393   pyquery - a jquery-like library for python
        4383   Fate of PySide
        3012   Configuring Vim for Python
-       3716   Multiprocessing & Socket Duplication
+     * 3716   Multiprocessing & Socket Duplication
        2412   Extensions I just can live without
     > /t 3012
     > hello vim community!
     [13:24] vim/3012 <user1>
         hello vim community!
+
     [13:25] vim/3012 <user3>
         welcome
 
