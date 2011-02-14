@@ -2,7 +2,7 @@
  convoread
 ===========
 
-Simple console reader for `Convore`_.
+Command-line tool for `Convore`_.
 
 Latest version: 0.4, 2011-02-14.
 
@@ -13,12 +13,12 @@ Description
 -----------
 
 ``convoread`` streams live Convore messages to the standard output or shows
-desktop notifications (only for Ubuntu and similar systems at this moment).
+desktop notifications (only for Ubuntu and similar systems at this moment). It
+also allows posting new messages and listing recent messages in topics.
 
-Future versions will include posting messages, creating topics, and managing
-groups.
+Future versions will allow creating topics, managing notifications, etc.
 
-See `discussion`_ on Convore for ``convoread`` announcements, support, etc.
+See `discussion`_ on Convore for ``convoread`` announcements, support.
 
 .. _discussion: https://convore.com/feedback/convoread-simple-console-client-for-convore/
 
