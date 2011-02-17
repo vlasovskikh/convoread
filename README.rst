@@ -37,12 +37,11 @@ indefinitely::
 
     [13:06] mygroup/1234 <user1>
         hello
-
     [13:21] mygroup/1234 <user2>
         convoread works
-
     [13:22] mygroup/1234 <user1>
         @user2 indeed!
+    >
 
 You can also list recent topics and send messages::
 
@@ -56,9 +55,9 @@ You can also list recent topics and send messages::
     > hello vim community!
     [13:24] vim/3012 <user1>
         hello vim community!
-
     [13:25] vim/3012 <user3>
         welcome
+    >
 
 Press ``/q`` to exit::
 
@@ -66,7 +65,7 @@ Press ``/q`` to exit::
     quit
 
 You can also enable desktop notifications for Ubuntu and similar systems that
-support ``libnotify``::
+support libnotify::
 
     $ convoread --notify
 
@@ -103,7 +102,7 @@ Requirements
 
 Optional:
 
-* pynotify (on some systems: python-notify) for desktop notifications
+* libnotify for desktop notifications
 * PIL (Python Imaging Library) for avatars in notifications
 
 

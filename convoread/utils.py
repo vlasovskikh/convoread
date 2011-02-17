@@ -28,31 +28,61 @@ import os
 import traceback
 import textwrap
 from netrc import netrc
+from threading import RLock, current_thread
+from functools import wraps
 
 from convoread.config import config
 
+try:
+    import readline
+except ImportError:
+    error('readline module not available')
+    readline = None
 
-stdout = None
-stderr = None
+
+stdout = os.fdopen(sys.stdout.fileno(), 'wb', 0)
+stderr = os.fdopen(sys.stderr.fileno(), 'wb', 0)
 
 
 def debug(msg):
-    if config['DEBUG']:
-        print('debug: {0}'.format(msg).encode(config['ENCODING'], 'replace'),
-              file=stderr)
+    if not config['DEBUG']:
+        return
+    thread = current_thread()
+    async = thread.name != 'MainThread'
+    _print('debug: {0}'.format(msg), stderr, async)
 
 
 def error(msg, exc=False):
-    print('error: {0}'.format(msg).encode(config['ENCODING'], 'replace'),
-          file=stderr)
+    thread = current_thread()
+    async = thread.name != 'MainThread'
+    _print('error: {0}'.format(msg), stderr, async)
     if exc:
-        print(b'Traceback:', file=stderr)
-        for line in traceback.format_exc().splitlines():
-            print(line.encode(config['ENCODING'], 'replace'), file=stderr)
+        _print('traceback:\n{0}'.format(traceback.format_exc()), stderr, async)
+
+
+def output(msg, fd=stdout, async=False):
+    _print(msg, fd, async)
+
+
+def _print(msg, fd, async):
+    data = msg.encode(config['ENCODING'], 'replace')
+    if async and fd.isatty() and readline:
+        prompt = config['PROMPT']
+        buf = readline.get_line_buffer()
+        clear = b'\r' + b' ' * (len(buf) + len(prompt)) + b'\r'
+        fd.write(clear)
+        fd.write(data)
+        fd.write(b'\n')
+        fd.write(prompt)
+        fd.write(buf)
+        fd.flush()
+    else:
+        fd.write(data)
+        fd.write(b'\n')
+        fd.flush()
 
 
 def get_passwd():
-    '''Read config for username and password'''
     try:
         rc = netrc(os.path.expanduser('~/.netrc'))
     except IOError:
@@ -65,6 +95,19 @@ def get_passwd():
         login, password = res[0].strip(), res[2].strip()
     return login, password
 
+
 def wrap_string(s, indent=4, width=75):
     return '\n'.join((' ' * indent) + line for line in textwrap.wrap(s, width))
+
+
+def synchronized(f):
+    @wraps(f)
+    def wrapper(self, *args, **kwargs):
+        try:
+            lock = self._lock
+        except AttributeError:
+            lock = self._lock = RLock()
+        with lock:
+            return f(self, *args, **kwargs)
+    return wrapper
 

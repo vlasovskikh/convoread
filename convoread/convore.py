@@ -28,9 +28,11 @@ import time
 from httplib import HTTPSConnection, HTTPException
 from urllib import urlencode
 import socket
+from contextlib import closing
+from threading import Thread
 
 from convoread.config import config
-from convoread.utils import debug, error
+from convoread.utils import debug, error, get_passwd, synchronized
 
 
 class NetworkError(Exception):
@@ -38,61 +40,154 @@ class NetworkError(Exception):
 
 
 class Convore(object):
-    def __init__(self, login=None, password=None):
-        self.username = login
-        self._connection = HTTPSConnection(config['HOSTNAME'])
-        self._headers = {}
-        self._groups = None
-        self._topics = None
-        if login is not None or password is not None:
-            self._headers[b'Authorization'] = authheader(login, password)
+    def __init__(self):
+        self._connection = Connection()
+        self._live = Live()
+        self._live.on_update(self._handle_live_update)
 
 
+    @synchronized
+    def get_username(self):
+        return self._connection.username
+
+
+    @synchronized
     def get_groups(self):
-        if self._groups:
-            return self._groups
         def groupid(g):
             try:
                 return int(g.get('id'))
             except ValueError:
                 return None
-        response = self._request('GET', config['GROUPS_URL'])
+        response = self._connection.request('GET', config['GROUPS_URL'])
         result = dict((groupid(g), g) for g in response.get('groups', []))
-        self._groups = result
         return result
 
 
+    @synchronized
     def get_topics(self, groups):
-        if self._topics:
-            return self._topics
         topics = {}
         for group in groups:
-            gtopics = self._request('GET', config['TOPICS_URL'].format(group))
+            url = config['TOPICS_URL'].format(group)
+            gtopics = self._connection.request('GET', url)
             for topic in gtopics.get('topics', []):
                 topics[topic['id']] = topic
-        self._topics = topics
         return topics
 
 
+    @synchronized
     def get_topic_messages(self, topic):
         url = config['TOPIC_MESSAGES_URL'].format(topic)
-        return self._request('GET', url).get('messages', [])
+        return self._connection.request('GET', url).get('messages', [])
 
+
+    @synchronized
     def send_message(self, topic, msg):
-        self._request('POST',
-                      config['CREATE_MSG_URL'].format(topic),
-                      params={'message': msg})
+        data = msg.encode(config['NETWORK_ENCODING'], 'replace')
+        self._connection.request('POST',
+                                 config['CREATE_MSG_URL'].format(topic),
+                                 params={'message': data})
 
 
-    def get_livestream(self):
-        '''Return an iterable over live messages.'''
-        headers = {}
-        while True:
-            try:
+    @synchronized
+    def on_live_update(self, callback):
+        self._live.on_update(callback)
+
+
+    @synchronized
+    def close(self):
+        self._connection.close()
+        self._live.close()
+
+
+    @synchronized
+    def _handle_live_update(self, message):
+        pass
+
+
+class Connection(object):
+    def __init__(self):
+        # Credentials are stored in .netrc now. If we need different ways of
+        # storing them, we will turn them into arguments
+        login, password = get_passwd()
+        self.username = login
+        self.http = HTTPSConnection(config['HOSTNAME'])
+        self._headers = {
+            b'Authorization': authheader(login, password),
+        }
+
+
+    def request(self, method, url, params={}):
+        body = None
+        if params:
+            if method == 'GET':
+                url = '{path}?{params}'.format(path=url,
+                                               params=urlencode(params))
+            else:
+                body = urlencode(params)
+        debug('GET {0} HTTP/1.1'.format(url))
+        try:
+            self.http.connect()
+        except socket.gaierror:
+            msg = 'cannot get network address for "{host}"'.format(
+                    host=self.http.host)
+            raise NetworkError(msg)
+        try:
+            self.http.request(method, url, body, headers=self._headers)
+            r = self.http.getresponse()
+        except HTTPException, e:
+            self.http.close()
+            raise NetworkError('HTTP request error: {0}'.format(
+                    type(e).__name__))
+        except socket.error, e:
+            self.http.close()
+            raise NetworkError(e.args[1])
+        if r.status // 100 != 2:
+            msg = 'server error: {status} {reason}'.format(status=r.status,
+                                                           reason=r.reason)
+            self.http.close()
+            raise NetworkError(msg)
+        try:
+            data = r.read().decode(config['NETWORK_ENCODING'])
+            res = json.loads(data)
+            debug('response in JSON\n{msg}'.format(
+                msg=json.dumps(res, ensure_ascii=False, indent=4)))
+            return res
+        except ValueError:
+            raise NetworkError('bad server response: {0}'.format(data))
+
+
+    def close(self):
+        self.http.close()
+
+
+class Live(Thread):
+    def __init__(self):
+        self._connection = Connection()
+        self._callbacks = []
+
+        Thread.__init__(self)
+        self.daemon = True
+        self.start()
+
+
+    def on_update(self, callback):
+        self._callbacks.append(callback)
+
+
+    def close(self):
+        pass
+
+
+    def run(self):
+        # XXX: Wait for the command line to initialize
+        time.sleep(1.0)
+
+        with closing(self._connection):
+            headers = {}
+            while True:
                 try:
-                    event = self._request('GET',
-                                          config['LIVE_URL'],
-                                          headers)
+                    url = config['LIVE_URL']
+                    event = self._connection.request('GET', url, headers)
                 except NetworkError, e:
                     n = 10
                     error('{msg}, waiting for {n} secs...'.format(
@@ -104,54 +199,10 @@ class Convore(object):
                 messages = event.get('messages', [])
                 if messages:
                     headers['cursor'] = messages[-1].get('_id', 'null')
-                for m in messages:
-                    yield m
-            except KeyboardInterrupt:
-                pass
-
-
-    def close(self):
-        self._connection.close()
-
-
-    def _request(self, method, url, params={}):
-        body = None
-        if params:
-            if method == 'GET':
-                url = '{path}?{params}'.format(path=url,
-                                           params=urlencode(params))
-            else:
-                body = urlencode(params)
-        debug('GET {0} HTTP/1.1'.format(url))
-        try:
-            self._connection.connect()
-        except socket.gaierror:
-            msg = 'cannot get network address for "{host}"'.format(
-                    host=self._connection.host)
-            raise NetworkError(msg)
-        try:
-            self._connection.request(method, url, body, headers=self._headers)
-            r = self._connection.getresponse()
-        except HTTPException, e:
-            self._connection.close()
-            raise NetworkError('HTTP request error: {0}'.format(
-                    type(e).__name__))
-        except socket.error, e:
-            self._connection.close()
-            raise NetworkError(e.args[1])
-        if r.status // 100 != 2:
-            msg = 'server error: {status} {reason}'.format(status=r.status,
-                                                           reason=r.reason)
-            self._connection.close()
-            raise NetworkError(msg)
-        try:
-            data = r.read().decode(config['NETWORK_ENCODING'])
-            res = json.loads(data)
-            debug('response in json\n{msg}'.format(
-                msg=json.dumps(res, ensure_ascii=False, indent=4)))
-            return res
-        except ValueError:
-            raise NetworkError('bad server response: {0}'.format(data))
+                # TODO: Handle exceptions in callbacks
+                for f in self._callbacks:
+                    for m in messages:
+                        f(m)
 
 
 def authheader(login, password):

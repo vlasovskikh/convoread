@@ -26,14 +26,37 @@ from datetime import datetime
 
 from convoread.convore import Convore, NetworkError
 from convoread.config import config
-from convoread.utils import get_passwd, error, debug, stdout, wrap_string
+from convoread.utils import get_passwd, error, debug, output, wrap_string
 
 
-class Input(object):
-    def __init__(self):
-        login, password = get_passwd()
-        self.convore = Convore(login, password)
+class Console(object):
+    def __init__(self, convore):
+        self.convore = convore
+        self.convore.on_live_update(self.handle_live_update)
         self.topic = None
+
+
+    def handle_live_update(self, message):
+        username = message.get('user', {}).get('username', '(unknown)')
+        me = self.convore.get_username()
+        if message.get('kind') != 'message' or username == me:
+            return
+
+        group = self.convore.get_groups().get(message.get('group'), {})
+        title = '[{time}] {group}/{topic} <{user}>'.format(
+            time=datetime.now().strftime('%H:%M'),
+            group=group.get('slug', '(unkonwn)'),
+            topic=message.get('topic', {}).get('id', '(unknown)'),
+            user=username)
+        body = wrap_string(message.get('message', '(empty)'))
+        output('{0}\n{1}'.format(title, body), async=True)
+
+
+    def loop(self):
+        output('welcome to convoread! type /help for more info')
+        while True:
+            data = raw_input(config['PROMPT'])
+            self.dispatch(data.decode(config['ENCODING'], 'replace'))
 
 
     def dispatch(self, msg):
@@ -83,7 +106,7 @@ class Input(object):
                 mark='*' if t.get('id', '?') == self.topic else ' ',
                 id=t.get('id', '?'),
                 name=t.get('name', '<unknown>'))
-            print(msg.encode(config['ENCODING'], 'replace'), file=stdout)
+            output(msg)
 
 
     def cmd_ls(self, topic=None):
@@ -109,13 +132,11 @@ class Input(object):
                 time=created.strftime('%H:%M'),
                 user=username)
             body = wrap_string(message.get('message', '(empty)'))
-
-            s = '{0}\n{1}\n'.format(title, body)
-            print(s.encode(config['ENCODING'], 'replace'), file=stdout)
+            output('{0}\n{1}'.format(title, body))
 
 
     def cmd_help(self):
-        print('''\
+        output('''\
 commands:
 
   /t [num]    list recent topics or set current topic to <num>
@@ -128,7 +149,7 @@ keys:
 
   C-u         clear command line
   C-d         quit
-''', file=stdout)
+''')
 
 
     def sendmsg(self, msg):

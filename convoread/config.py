@@ -33,5 +33,7 @@ config = {
     'TOPIC_MESSAGES_URL': '/api/topics/{0}/messages.json',
     'CREATE_MSG_URL': '/api/topics/{0}/messages/create.json',
     'ENCODING': 'UTF-8',
+    'PROMPT': '> ',
+    'NOTIFY_SEND': '/usr/bin/notify-send',
 }
 

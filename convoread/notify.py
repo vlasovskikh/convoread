@@ -28,54 +28,50 @@ from shutil import rmtree
 from urllib import urlopen
 from hashlib import sha1
 from contextlib import closing
+import subprocess
 
-try:
-    import pynotify
-except ImportError:
-    pynotify = None
-
+from convoread.config import config
 from convoread.utils import error, debug
 
 
 class Notifier(object):
-    def __init__(self):
-        if not pynotify:
-            return
-
+    def __init__(self, convore):
+        self.convore = convore
+        self.convore.on_live_update(self.handle_live_update)
+        if os.path.exists(config['NOTIFY_SEND']):
+            self.enabled = True
+        else:
+            error('desktop notifications are disabled: '
+                  '"{0}" not found'.format(config['NOTIFY_SEND']))
+            self.enabled = False
         self._tmpdir = mkdtemp()
-        pynotify.init('convoread')
 
 
-    def display(self, convore, message):
-        if not pynotify:
+    def handle_live_update(self, message):
+        if not self.enabled:
             return
 
         kind = message.get('kind')
         user = message.get('user', {})
         username = user.get('username', '<anonymous>')
-        img = self.imgpath(user)
-        body = ''
-        timeout = 5000
 
-        if kind == 'message' and username != convore.username:
-            group = convore.get_groups().get(message.get('group'), {})
-            title = '@{user} in {group}/{topic}'.format(
-                group=group.get('slug', '<unkonwn>'),
-                topic=message.get('topic', {}).get('id', '(unknown)'),
-                user=username)
-            body = message.get('message', '<empty>')
-            timeout = 15000
-        # TODO: Presence notifications are too noisy
-        #elif kind == 'login':
-        #    title = '@{user} logged in'.format(user=username)
-        #elif kind == 'logout':
-        #    title = '@{user} logged out'.format(user=username)
-        else:
+        if kind != 'message' or username == self.convore.get_username():
             return
 
-        n = pynotify.Notification(title, body, img)
-        n.set_timeout(timeout)
-        n.show()
+        img = self.imgpath(user)
+        group = self.convore.get_groups().get(message.get('group'), {})
+        timeout = 15000
+        title = '@{user} in {group}'.format(
+            group=group.get('slug', '<unkonwn>'),
+            user=username)
+        body = '{msg} <a href="https://convore.com{url}">#</a>'.format(
+                msg=message.get('message', '<empty>'),
+                url=message.get('topic', {}).get('url', '/'))
+
+        cmd = [config['NOTIFY_SEND'], '-t', str(timeout), title, body]
+        if img:
+            cmd.extend(['-i', img])
+        subprocess.call(cmd)
 
 
     def imgpath(self, user):
@@ -118,8 +114,5 @@ class Notifier(object):
 
 
     def close(self):
-        if not pynotify:
-            return
-
         rmtree(self._tmpdir)
 
