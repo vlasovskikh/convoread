@@ -60,6 +60,7 @@ class Convore(object):
             return self._groups
         response = self._connection.request('GET', config['GROUPS_URL'])
         for group in response.get('groups', []):
+            _adjust_convore_tz(group, 'date_latest_message')
             self._groups[_id(group)] = group
         return self._groups
 
@@ -74,25 +75,28 @@ class Convore(object):
 
 
     @synchronized
-    def get_group_topics(self, group):
+    def get_group_topics(self, group_id):
         result = {}
-        url = config['TOPICS_URL'].format(group)
+        url = config['TOPICS_URL'].format(group_id)
         response = self._connection.request('GET', url)
         for topic in response.get('topics', []):
             _adjust_convore_tz(topic, 'date_latest_message')
-            topic['group'] = group
+            topic['group'] = group_id
             result[_id(topic)] = topic
         return result
 
 
     @synchronized
-    def get_topic_messages(self, topic):
-        url = config['TOPIC_MESSAGES_URL'].format(topic)
+    def get_topic_messages(self, topic_id):
+        url = config['TOPIC_MESSAGES_URL'].format(topic_id)
         messages = self._connection.request('GET', url).get('messages', [])
         for message in messages:
             _adjust_convore_tz(message, 'date_created')
-        t = self.get_topics().get(topic, {})
-        t['unread'] = 0
+        topic = self.get_topics().get(topic_id, {})
+        unread = topic.get('unread', 0)
+        group = self.get_groups().get(topic.get('group'), {})
+        group['unread'] -= unread
+        topic['unread'] -= unread
         return messages
 
 
@@ -121,7 +125,10 @@ class Convore(object):
             return
 
         id = _id(message.get('topic', {}))
-        group_id = message.get('group')
+        try:
+            group_id = int(message.get('group'))
+        except:
+            group_id = None
         topics = self.get_topics()
         ts = message.get('_ts')
 
@@ -130,6 +137,8 @@ class Convore(object):
         else:
             group_topics = self.get_group_topics(group_id)
             topics[id] = group_topics.get(id, {})
+        groups = self.get_groups()
+        groups[group_id]['date_latest_message'] = message.get('_ts')
 
 
 class Connection(object):

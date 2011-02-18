@@ -49,11 +49,15 @@ indefinitely::
 You can also list recent topics and send messages::
 
     > /ts
-       4393    3 pyquery - a jquery-like library for python
-       4383    1 Fate of PySide
-       3012      Configuring Vim for Python
-     * 3716      Multiprocessing & Socket Duplication
-       2412      Extensions I just can live without
+    python:
+        4393    3 pyquery - a jquery-like library for python
+        4383    1 Fate of PySide
+    vim:
+        3012    1 Configuring Vim for Python
+    mercurial:
+        2412    1 Extensions I just can live without
+    emacs:
+    feedback:
     > /t 3012
 
     *** topic vim/3012: Configuring Vim for Python

@@ -44,7 +44,7 @@ class Console(object):
             return
 
         topic = message.get('topic', {})
-        self.set_output_topic(str(topic.get('id')), async=True)
+        self.set_output_topic(_id(topic), async=True)
 
         output(_format_message(message), async=True)
 
@@ -84,55 +84,76 @@ class Console(object):
         raise EOFError()
 
 
-    def cmd_ts(self):
+    def cmd_ts(self, group_slug=None):
         count = 20
+
+        def latest_message(x):
+            return x.get('date_latest_message')
+
         try:
-            topics = self.convore.get_topics()
+            all_topics = list(self.convore.get_topics().values())
+            groups = list(self.convore.get_groups().values())
         except NetworkError, e:
             error(unicode(e))
             return
-        recent = list(sorted(topics.itervalues(),
-                             key=lambda x: x.get('date_latest_message'),
-                             reverse=True))
-        for t in list(recent)[:count]:
-            unread = t.get('unread', 0)
-            msg = ' {mark} {id:6} {new:2} {name}'.format(
-                mark='*' if t.get('id', '?') == self.topic else ' ',
-                id=t.get('id', '?'),
-                new=unread if unread > 0 else '',
-                name=t.get('name', '<unknown>'))
-            output(msg)
+
+        if group_slug:
+            groups = [g for g in groups
+                        if g.get('slug') == group_slug]
+            if not groups:
+                error('group "{0}" not found'.format(group_slug))
+                return
+
+        groups = sorted(groups, key=latest_message, reverse=True)
+
+        for group in groups:
+            output('{name}:'.format(
+                name=group.get('slug', '(unknown)')))
+            topics = [t for t in all_topics if t.get('group') == _id(group)]
+            topics = sorted(topics, key=latest_message, reverse=True)
+            for topic in topics:
+                unread = topic.get('unread', 0)
+                if not group_slug and unread == 0:
+                    continue
+                msg = '  {mark} {id:6} {new:2} {name}'.format(
+                    mark='*' if _id(topic) == self.topic else ' ',
+                    id=topic.get('id', '?'),
+                    new=unread if unread > 0 else '',
+                    name=topic.get('name', '(unknown)'))
+                output(msg)
 
 
-    def cmd_t(self, topic=None):
-        if topic:
-            self.topic = topic.strip()
+    def cmd_t(self, topic_id=None):
+        count = 10
+        if topic_id:
+            try:
+                topic_id = int(topic_id)
+            except ValueError:
+                error('bad topic number: "{0}"'.format(topic_id))
+                return
+            self.topic = topic_id
         else:
             if self.topic:
-                topic = self.topic
+                topic_id = self.topic
             else:
                 error('no topic set, type /help for more info')
                 return
         try:
-            try:
-                id = int(topic)
-            except ValueError:
-                id = None
-            messages = self.convore.get_topic_messages(id)
+            messages = self.convore.get_topic_messages(topic_id)
         except NetworkError, e:
             error(unicode(e))
             return
-        count = 15
         self.output_topic = None
-        self.set_output_topic(topic)
+        self.set_output_topic(topic_id)
         for message in messages[(len(messages) - count):]:
             output(_format_message(message))
+
 
     def cmd_help(self):
         output('''\
 commands:
 
-  /ts         list recent topics
+  /ts [name]  list unread topics or topics in group <name>
   /t [num]    set topic to <num> and list recent messages
   /help       show help on commands
   /q          quit
@@ -150,12 +171,7 @@ keys:
             return
         self.output_topic = topic_id
 
-        try:
-            id = int(topic_id)
-        except ValueError:
-            id = None
-
-        topic = self.convore.get_topics().get(id, {})
+        topic = self.convore.get_topics().get(_id({'id': topic_id}), {})
         group = self.convore.get_groups().get(topic.get('group'), {})
 
         output('\n*** topic {group}/{id}: {name}'.format(
@@ -190,4 +206,11 @@ def _format_message(msg):
     return '{time} {body}'.format(
             time=created.strftime('%H:%M'),
             body=wrap_string(body, indent=6).lstrip())
+
+
+def _id(x):
+    try:
+        return int(x.get('id'))
+    except ValueError:
+        return None
 
