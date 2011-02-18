@@ -26,7 +26,7 @@ from datetime import datetime
 
 from convoread.convore import Convore, NetworkError
 from convoread.config import config
-from convoread.utils import get_passwd, error, debug, output, wrap_string
+from convoread.utils import error, debug, output, wrap_string
 
 
 class Console(object):
@@ -34,6 +34,7 @@ class Console(object):
         self.convore = convore
         self.convore.on_live_update(self.handle_live_update)
         self.topic = None
+        self.output_topic = None
 
 
     def handle_live_update(self, message):
@@ -42,14 +43,10 @@ class Console(object):
         if message.get('kind') != 'message' or username == me:
             return
 
-        group = self.convore.get_groups().get(message.get('group'), {})
-        title = '[{time}] {group}/{topic} <{user}>'.format(
-            time=datetime.now().strftime('%H:%M'),
-            group=group.get('slug', '(unkonwn)'),
-            topic=message.get('topic', {}).get('id', '(unknown)'),
-            user=username)
-        body = wrap_string(message.get('message', '(empty)'))
-        output('{0}\n{1}'.format(title, body), async=True)
+        topic = message.get('topic', {})
+        self.set_output_topic(str(topic.get('id')), async=True)
+
+        output(_format_message(message), async=True)
 
 
     def loop(self):
@@ -89,18 +86,17 @@ class Console(object):
 
     def cmd_t(self, topic=None):
         if topic:
-            self.topic = topic
+            self.topic = topic.strip()
             return
-        count = 10
+        count = 15
         try:
-            groups = self.convore.get_groups()
-            topics = self.convore.get_topics(groups)
+            topics = self.convore.get_topics()
         except NetworkError, e:
             error(unicode(e))
             return
-        recent = sorted(topics.itervalues(),
-                        key=lambda x: x.get('date_latest_message'),
-                        reverse=True)
+        recent = list(sorted(topics.itervalues(),
+                             key=lambda x: x.get('date_latest_message'),
+                             reverse=True))
         for t in list(recent)[:count]:
             msg = ' {mark} {id:6} {name}'.format(
                 mark='*' if t.get('id', '?') == self.topic else ' ',
@@ -121,19 +117,10 @@ class Console(object):
         except NetworkError, e:
             error(unicode(e))
             return
-        for message in messages:
-            username = message.get('user', {}).get('username', '(unknown)')
-            try:
-                # TODO: Time is not in the local timezone now
-                created = datetime.fromtimestamp(message.get('date_created'))
-            except:
-                created = datetime.now()
-            title = '[{time}] <{user}>'.format(
-                time=created.strftime('%H:%M'),
-                user=username)
-            body = wrap_string(message.get('message', '(empty)'))
-            output('{0}\n{1}'.format(title, body))
-
+        count = 15
+        self.set_output_topic(topic)
+        for message in messages[(len(messages) - count):]:
+            output(_format_message(message))
 
     def cmd_help(self):
         output('''\
@@ -152,6 +139,26 @@ keys:
 ''')
 
 
+    def set_output_topic(self, topic_id, async=False):
+        if topic_id == self.output_topic:
+            return
+        self.output_topic = topic_id
+
+        try:
+            id = int(topic_id)
+        except ValueError:
+            id = None
+
+        topic = self.convore.get_topics().get(id, {})
+        group = self.convore.get_groups().get(topic.get('group'), {})
+
+        output('\n*** topic {group}/{id}: {name}'.format(
+                    group=group.get('slug', '(unkonwn)'),
+                    id=topic_id,
+                    name=topic.get('name', '(unknown)')),
+               async=async)
+
+
     def sendmsg(self, msg):
         if not self.topic:
             error('no topic set, type /help for more info')
@@ -164,4 +171,17 @@ keys:
             self.convore.send_message(self.topic, msg)
         except NetworkError, e:
             error(unicode(e))
+
+
+def _format_message(msg):
+    username = msg.get('user', {}).get('username', '(unknown)')
+    try:
+        created = datetime.fromtimestamp(msg['_ts'])
+    except:
+        created = datetime.fromtimestamp(msg['date_created'])
+    body = '<{user}> {msg}'.format(user=username,
+                                   msg=msg.get('message', '(empty)'))
+    return '{time} {body}'.format(
+            time=created.strftime('%H:%M'),
+            body=wrap_string(body, indent=6).lstrip())
 
