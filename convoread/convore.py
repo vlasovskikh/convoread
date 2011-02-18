@@ -25,7 +25,8 @@ from __future__ import unicode_literals, print_function
 import base64
 import json
 import time
-from httplib import HTTPSConnection, HTTPException
+from httplib import (HTTPSConnection, HTTPException, CannotSendRequest,
+                     BadStatusLine)
 from urllib import urlencode
 import socket
 from contextlib import closing
@@ -163,27 +164,38 @@ class Connection(object):
             else:
                 body = urlencode(params)
         debug('GET {0} HTTP/1.1'.format(url))
-        try:
-            self.http.connect()
-        except socket.gaierror:
-            msg = 'cannot get network address for "{host}"'.format(
-                    host=self.http.host)
-            raise NetworkError(msg)
-        try:
+
+        def _request():
             self.http.request(method, url, body, headers=self._headers)
-            r = self.http.getresponse()
+            return self.http.getresponse()
+
+        try:
+            try:
+                r = _request()
+            except (CannotSendRequest, BadStatusLine), e:
+                debug('exception {0}, reconnecting...'.format(e))
+                self.http.close()
+                self.http.connect()
+                r = _request()
         except HTTPException, e:
             self.http.close()
             raise NetworkError('HTTP request error: {0}'.format(
                     type(e).__name__))
+        except socket.gaierror:
+            msg = 'cannot get network address for "{host}"'.format(
+                    host=self.http.host)
+            raise NetworkError(msg)
         except socket.error, e:
             self.http.close()
             raise NetworkError(e.args[1])
+
+        status_msg = '{status} {reason}'.format(status=r.status,
+                                                reason=r.reason)
+        debug('HTTP/1.1 {0}'.format(status_msg))
         if r.status // 100 != 2:
-            msg = 'server error: {status} {reason}'.format(status=r.status,
-                                                           reason=r.reason)
             self.http.close()
-            raise NetworkError(msg)
+            raise NetworkError('server error: {0}'.format(status_msg))
+
         try:
             data = r.read().decode(config['NETWORK_ENCODING'])
             res = json.loads(data)
