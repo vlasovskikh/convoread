@@ -145,7 +145,7 @@ class Console(object):
             return
         self.output_topic = None
         self.set_output_topic(topic_id)
-        for message in messages[(len(messages) - count):]:
+        for message in messages[-count:]:
             output(_format_message(message))
 
 
