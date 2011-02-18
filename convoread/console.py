@@ -52,8 +52,13 @@ class Console(object):
     def loop(self):
         output('welcome to convoread! type /help for more info')
         while True:
-            data = raw_input(config['PROMPT'])
-            self.dispatch(data.decode(config['ENCODING'], 'replace'))
+            try:
+                data = raw_input(config['PROMPT'])
+                self.dispatch(data.decode(config['ENCODING'], 'replace'))
+            except EOFError:
+                raise
+            except Exception, e:
+                error(unicode(e), exc=e)
 
 
     def dispatch(self, msg):

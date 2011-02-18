@@ -57,7 +57,7 @@ def error(msg, exc=False):
     async = thread.name != 'MainThread'
     _print('error: {0}'.format(msg), stderr, async)
     if exc:
-        _print('traceback:\n{0}'.format(traceback.format_exc()), stderr, async)
+        _print('\n{0}'.format(traceback.format_exc()), stderr, async)
 
 
 def output(msg, fd=stdout, async=False):

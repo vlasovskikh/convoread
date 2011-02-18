@@ -138,6 +138,7 @@ class Convore(object):
             group_topics = self.get_group_topics(group_id)
             topics[id] = group_topics.get(id, {})
         groups = self.get_groups()
+        # TODO: Handle messages in new groups (not in self._groups yet)
         groups[group_id]['date_latest_message'] = message.get('_ts')
 
 
@@ -238,8 +239,11 @@ class Live(Thread):
                     headers['cursor'] = messages[-1].get('_id', 'null')
                 # TODO: Handle exceptions in callbacks
                 for f in self._callbacks:
-                    for m in messages:
-                        f(m)
+                    try:
+                        for m in messages:
+                            f(m)
+                    except Exception, e:
+                        error(unicode(e), exc=e)
 
 
 def authheader(login, password):
