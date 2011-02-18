@@ -84,11 +84,8 @@ class Console(object):
         raise EOFError()
 
 
-    def cmd_t(self, topic=None):
-        if topic:
-            self.topic = topic.strip()
-            return
-        count = 15
+    def cmd_ts(self):
+        count = 20
         try:
             topics = self.convore.get_topics()
         except NetworkError, e:
@@ -98,26 +95,35 @@ class Console(object):
                              key=lambda x: x.get('date_latest_message'),
                              reverse=True))
         for t in list(recent)[:count]:
-            msg = ' {mark} {id:6} {name}'.format(
+            unread = t.get('unread', 0)
+            msg = ' {mark} {id:6} {new:2} {name}'.format(
                 mark='*' if t.get('id', '?') == self.topic else ' ',
                 id=t.get('id', '?'),
+                new=unread if unread > 0 else '',
                 name=t.get('name', '<unknown>'))
             output(msg)
 
 
-    def cmd_ls(self, topic=None):
-        if not topic:
+    def cmd_t(self, topic=None):
+        if topic:
+            self.topic = topic.strip()
+        else:
             if self.topic:
                 topic = self.topic
             else:
                 error('no topic set, type /help for more info')
                 return
         try:
-            messages = self.convore.get_topic_messages(topic)
+            try:
+                id = int(topic)
+            except ValueError:
+                id = None
+            messages = self.convore.get_topic_messages(id)
         except NetworkError, e:
             error(unicode(e))
             return
         count = 15
+        self.output_topic = None
         self.set_output_topic(topic)
         for message in messages[(len(messages) - count):]:
             output(_format_message(message))
@@ -126,8 +132,8 @@ class Console(object):
         output('''\
 commands:
 
-  /t [num]    list recent topics or set current topic to <num>
-  /ls [num]   list recent messages in topic (current or <num>)
+  /ts         list recent topics
+  /t [num]    set topic to <num> and list recent messages
   /help       show help on commands
   /q          quit
   <text>      post a new message

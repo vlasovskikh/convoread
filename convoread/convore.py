@@ -91,6 +91,8 @@ class Convore(object):
         messages = self._connection.request('GET', url).get('messages', [])
         for message in messages:
             _adjust_convore_tz(message, 'date_created')
+        t = self.get_topics().get(topic, {})
+        t['unread'] = 0
         return messages
 
 
@@ -128,6 +130,7 @@ class Convore(object):
         else:
             group_topics = self.get_group_topics(group_id)
             topics[id] = group_topics.get(id, {})
+
 
 class Connection(object):
     def __init__(self):
