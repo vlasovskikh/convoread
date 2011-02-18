@@ -4,7 +4,7 @@
 
 Command-line tool for `Convore`_.
 
-Latest version: 0.4, 2011-02-14.
+Latest version: 0.5, 2011-02-18.
 
 .. _Convore: https://convore.com/
 
@@ -12,21 +12,47 @@ Latest version: 0.4, 2011-02-14.
 Description
 -----------
 
-``convoread`` streams live Convore messages to the standard output or shows
-desktop notifications (only for Ubuntu and similar systems at this moment). It
-also allows posting new messages and listing recent messages in topics.
+``convoread`` is a tool for sending and receiving Convore messages from the
+command line.
 
-Future versions will allow creating topics, managing notifications, etc.
+Some of it's features include:
 
-See `discussion`_ on Convore for ``convoread`` announcements, support.
+- Interactive console chat interface
+- Desktop notifications [*]_
+- Convenient topic switching
+- Unread topics by group
+- Recent topics and messages
+
+.. [*] At this moment desktop notifications work only for Ubuntu and similar
+       systems with ``libnotify`` installed.
+
+Future versions of ``convoread`` will allow creating topics, managing
+notifications, etc.
+
+See a `discussion`_ on Convore for ``convoread`` announcements and support.
 
 .. _discussion: https://convore.com/feedback/convoread-simple-console-client-for-convore/
 
 
+What's New in 0.5
+-----------------
+
+- More readable chat logs with topic change messages
+- Command ``/ts`` displays topics by group, including unread messages count
+- Command ``/t`` selects a topic *and* lists recent messages
+- Removed command ``/ls``
+- Recent topics are updated dynamically based on incoming messages
+- Input and output characters don't interfere anymore
+- Timestamps in the local timezone
+- Various bug fixes
+
+See also the `changelog`_.
+
+.. _changelog: https://github.com/foobarbuzz/convoread/blob/master/CHANGES.rst
+
+
 Usage
 -----
-
-*This section describes the next version 0.5. Stay tuned!*
 
 Run the program::
 
@@ -75,7 +101,7 @@ Press ``/q`` to exit::
     quit
 
 You can also enable desktop notifications for Ubuntu and similar systems that
-support libnotify::
+support ``libnotify``::
 
     $ convoread --notify
 

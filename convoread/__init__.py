@@ -43,7 +43,7 @@ from convoread.config import config
 from convoread.console import Console
 from convoread.notify import Notifier
 
-__version__ = b'0.4'
+__version__ = b'0.5'
 
 try:
     import locale

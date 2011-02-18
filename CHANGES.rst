@@ -2,11 +2,11 @@
 Changes
 =======
 
-0.5, TBD
---------
+0.5, 2011-02-18
+---------------
 
 - More readable chat logs with topic change messages
-- Command ``/ts`` displays topics list and unread messages count
+- Command ``/ts`` displays topics by group, including unread messages count
 - Command ``/t`` selects a topic *and* lists recent messages
 - Removed command ``/ls``
 - Recent topics are updated dynamically based on incoming messages
