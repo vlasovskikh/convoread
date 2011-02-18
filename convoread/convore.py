@@ -56,8 +56,8 @@ class Convore(object):
 
 
     @synchronized
-    def get_groups(self):
-        if self._groups:
+    def get_groups(self, force=False):
+        if self._groups and not force:
             return self._groups
         response = self._connection.request('GET', config['GROUPS_URL'])
         for group in response.get('groups', []):
@@ -67,8 +67,8 @@ class Convore(object):
 
 
     @synchronized
-    def get_topics(self):
-        if self._topics:
+    def get_topics(self, force=False):
+        if self._topics and not force:
             return self._topics
         for group in self.get_groups():
             self._topics.update(self.get_group_topics(group))
@@ -93,11 +93,13 @@ class Convore(object):
         messages = self._connection.request('GET', url).get('messages', [])
         for message in messages:
             _adjust_convore_tz(message, 'date_created')
+
         topic = self.get_topics().get(topic_id, {})
         unread = topic.get('unread', 0)
         group = self.get_groups().get(topic.get('group'), {})
-        group['unread'] -= unread
-        topic['unread'] -= unread
+        group['unread'] = max(group.get('unread', 0) - unread, 0)
+        topic['unread'] = 0
+
         return messages
 
 
@@ -139,7 +141,8 @@ class Convore(object):
             group_topics = self.get_group_topics(group_id)
             topics[id] = group_topics.get(id, {})
         groups = self.get_groups()
-        # TODO: Handle messages in new groups (not in self._groups yet)
+        if group_id not in groups:
+            groups = self.get_groups(force=True)
         groups[group_id]['date_latest_message'] = message.get('_ts')
 
 
@@ -249,7 +252,6 @@ class Live(Thread):
                 messages = event.get('messages', [])
                 if messages:
                     headers['cursor'] = messages[-1].get('_id', 'null')
-                # TODO: Handle exceptions in callbacks
                 for f in self._callbacks:
                     try:
                         for m in messages:
