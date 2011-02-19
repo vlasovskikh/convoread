@@ -159,14 +159,14 @@ class Console(object):
 commands:
 
   /ts [name]  list unread topics or topics in group <name>
-  /t [num]    set topic to <num> and list recent messages
+  /t [num]    set the posting topic to <num> and list recent messages
   /help       show help on commands
   /q          quit
-  <text>      post a new message
+  <text>      post a new message to the selected topic
 
 keys:
 
-  C-u         clear command line
+  C-u         clear the command line
   C-d         quit
 ''')
 
