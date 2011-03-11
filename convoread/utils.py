@@ -36,7 +36,7 @@ from convoread.config import config
 try:
     import readline
 except ImportError:
-    error('readline module not available')
+    print('readline module not available', file=sys.stderr)
     readline = None
 
 

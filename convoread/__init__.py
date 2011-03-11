@@ -38,6 +38,7 @@ from convoread.convore import Convore
 from convoread.config import config
 from convoread.console import Console
 from convoread.notify import Notifier
+from convoread.utils import error
 
 __version__ = b'0.5'
 
