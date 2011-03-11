@@ -53,7 +53,7 @@ class Notifier(object):
 
         kind = message.get('kind')
         user = message.get('user', {})
-        username = user.get('username', '<anonymous>')
+        username = user.get('username', '(anonymous)')
 
         if kind != 'message' or username == self.convore.get_username():
             return
@@ -62,10 +62,10 @@ class Notifier(object):
         group = self.convore.get_groups().get(message.get('group'), {})
         timeout = 15000
         title = '@{user} in {group}'.format(
-            group=group.get('slug', '<unkonwn>'),
+            group=group.get('slug', '(unkonwn)'),
             user=username)
         body = '{msg} <a href="https://convore.com{url}">#</a>'.format(
-                msg=message.get('message', '<empty>'),
+                msg=message.get('message', '(empty)'),
                 url=message.get('topic', {}).get('url', '/'))
 
         cmd = [config['NOTIFY_SEND'], '-t', str(timeout), title, body]
