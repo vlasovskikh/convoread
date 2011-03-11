@@ -130,20 +130,20 @@ class Convore(object):
         id = _id(message.get('topic', {}))
         try:
             group_id = int(message.get('group'))
-        except:
+        except (TypeError, ValueError):
             group_id = None
         topics = self.get_topics()
         ts = message.get('_ts')
 
         if id in topics:
-            topics[id]['date_latest_message'] = message.get('_ts')
+            topics[id]['date_latest_message'] = ts
         else:
             group_topics = self.get_group_topics(group_id)
             topics[id] = group_topics.get(id, {})
         groups = self.get_groups()
         if group_id not in groups:
             groups = self.get_groups(force=True)
-        groups[group_id]['date_latest_message'] = message.get('_ts')
+        groups[group_id]['date_latest_message'] = ts
 
 
 class Connection(object):
@@ -158,7 +158,7 @@ class Connection(object):
         }
 
 
-    def request(self, method, url, params={}):
+    def request(self, method, url, params=None):
         body = None
         if params:
             if method == 'GET':

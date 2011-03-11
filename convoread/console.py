@@ -24,7 +24,7 @@ from __future__ import unicode_literals, print_function
 
 from datetime import datetime
 
-from convoread.convore import Convore, NetworkError
+from convoread.convore import NetworkError
 from convoread.config import config
 from convoread.utils import error, debug, output, wrap_string
 
@@ -90,8 +90,6 @@ class Console(object):
 
 
     def cmd_ts(self, group_slug=None):
-        count = 20
-
         def latest_message(x):
             return x.get('date_latest_message')
 
@@ -204,7 +202,7 @@ def _format_message(msg):
     username = msg.get('user', {}).get('username', '(unknown)')
     try:
         created = datetime.fromtimestamp(msg['_ts'])
-    except:
+    except (KeyError, TypeError):
         created = datetime.fromtimestamp(msg['date_created'])
     body = '<{user}> {msg}'.format(user=username,
                                    msg=msg.get('message', '(empty)'))

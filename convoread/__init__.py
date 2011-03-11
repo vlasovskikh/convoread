@@ -26,10 +26,6 @@
 from __future__ import unicode_literals, print_function
 
 import sys
-import os
-import traceback
-import string
-from datetime import datetime
 from contextlib import closing
 from getopt import getopt, GetoptError
 
