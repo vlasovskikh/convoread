@@ -44,7 +44,7 @@ class Console(object):
             return
 
         topic = message.get('topic', {})
-        self.set_output_topic(_id(topic), async=True)
+        self.set_output_topic(topic.get('id'), async=True)
 
         output(_format_message(message), async=True)
 
@@ -112,14 +112,15 @@ class Console(object):
         for group in groups:
             output('{name}:'.format(
                 name=group.get('slug', '(unknown)')))
-            topics = [t for t in all_topics if t.get('group') == _id(group)]
+            topics = [t for t in all_topics
+                        if t.get('group') == group.get('id')]
             topics = sorted(topics, key=latest_message, reverse=True)
             for topic in topics:
                 unread = topic.get('unread', 0)
                 if not group_slug and unread == 0:
                     continue
                 msg = '  {mark} {id:6} {new:2} {name}'.format(
-                    mark='*' if _id(topic) == self.topic else ' ',
+                    mark='*' if topic.get('id') == self.topic else ' ',
                     id=topic.get('id', '?'),
                     new=unread if unread > 0 else '',
                     name=topic.get('name', '(unknown)'))
@@ -129,11 +130,6 @@ class Console(object):
     def cmd_t(self, topic_id=None):
         count = 10
         if topic_id:
-            try:
-                topic_id = int(topic_id)
-            except ValueError:
-                error('bad topic number: "{0}"'.format(topic_id))
-                return
             self.topic = topic_id
         else:
             if self.topic:
@@ -174,7 +170,7 @@ keys:
             return
         self.output_topic = topic_id
 
-        topic = self.convore.get_topics().get(_id({'id': topic_id}), {})
+        topic = self.convore.get_topics().get(topic_id, {})
         group = self.convore.get_groups().get(topic.get('group'), {})
 
         output('\n*** topic {group}/{id}: {name}'.format(
@@ -209,11 +205,4 @@ def _format_message(msg):
     return '{time} {body}'.format(
             time=created.strftime('%H:%M'),
             body=wrap_string(body, indent=6).lstrip())
-
-
-def _id(x):
-    try:
-        return int(x.get('id'))
-    except ValueError:
-        return None
 

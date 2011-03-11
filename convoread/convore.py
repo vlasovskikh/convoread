@@ -31,7 +31,6 @@ from urllib import urlencode
 import socket
 from contextlib import closing
 from threading import Thread
-from datetime import datetime, timedelta
 
 from convoread.config import config
 from convoread.utils import debug, error, get_passwd, synchronized
@@ -61,8 +60,7 @@ class Convore(object):
             return self._groups
         response = self._connection.request('GET', config['GROUPS_URL'])
         for group in response.get('groups', []):
-            _adjust_convore_tz(group, 'date_latest_message')
-            self._groups[_id(group)] = group
+            self._groups[group.get('id')] = group
         return self._groups
 
 
@@ -81,9 +79,8 @@ class Convore(object):
         url = config['TOPICS_URL'].format(group_id)
         response = self._connection.request('GET', url)
         for topic in response.get('topics', []):
-            _adjust_convore_tz(topic, 'date_latest_message')
             topic['group'] = group_id
-            result[_id(topic)] = topic
+            result[topic.get('id')] = topic
         return result
 
 
@@ -91,8 +88,6 @@ class Convore(object):
     def get_topic_messages(self, topic_id):
         url = config['TOPIC_MESSAGES_URL'].format(topic_id)
         messages = self._connection.request('GET', url).get('messages', [])
-        for message in messages:
-            _adjust_convore_tz(message, 'date_created')
 
         topic = self.get_topics().get(topic_id, {})
         unread = topic.get('unread', 0)
@@ -127,11 +122,8 @@ class Convore(object):
         if message.get('kind') != 'message':
             return
 
-        id = _id(message.get('topic', {}))
-        try:
-            group_id = int(message.get('group'))
-        except (TypeError, ValueError):
-            group_id = None
+        id = message.get('topic', {}).get('id')
+        group_id = message.get('group')
         topics = self.get_topics()
         ts = message.get('_ts')
 
@@ -264,18 +256,4 @@ def authheader(login, password):
     s = '%s:%s' % (login, password)
     value = base64.b64encode(s.encode(config['NETWORK_ENCODING']))
     return b'Basic ' + value
-
-
-def _id(x):
-    try:
-        return int(x.get('id'))
-    except ValueError:
-        return None
-
-
-def _adjust_convore_tz(x, timestamp_field):
-    '''Adjust some dates that are returned in UTC-05:00 by Convore'''
-    dt = datetime.utcfromtimestamp(x[timestamp_field])
-    dt += timedelta(hours=-5)
-    x[timestamp_field] = time.mktime(dt.timetuple())
 
