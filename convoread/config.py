@@ -20,18 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# TODO: Remove non-adjustable things like Convore URLs
-
 
 config = {
-    'HOSTNAME': 'convore.com',
     'DEBUG': False,
-    'NETWORK_ENCODING': 'UTF-8',
-    'LIVE_URL': '/api/live.json',
-    'GROUPS_URL': '/api/groups.json',
-    'TOPICS_URL': '/api/groups/{0}/topics.json',
-    'TOPIC_MESSAGES_URL': '/api/topics/{0}/messages.json',
-    'CREATE_MSG_URL': '/api/topics/{0}/messages/create.json',
     'ENCODING': 'UTF-8',
     'PROMPT': '> ',
     'NOTIFY_SEND': '/usr/bin/notify-send',

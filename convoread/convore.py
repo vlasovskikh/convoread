@@ -32,8 +32,10 @@ import socket
 from contextlib import closing
 from threading import Thread
 
-from convoread.config import config
 from convoread.utils import debug, error, get_passwd, synchronized
+
+
+NETWORK_ENCODING = 'UTF-8'
 
 
 class NetworkError(Exception):
@@ -58,7 +60,8 @@ class Convore(object):
     def get_groups(self, force=False):
         if self._groups and not force:
             return self._groups
-        response = self._connection.request('GET', config['GROUPS_URL'])
+        url = '/api/groups.json'
+        response = self._connection.request('GET', url)
         for group in response.get('groups', []):
             self._groups[group.get('id')] = group
         return self._groups
@@ -76,7 +79,7 @@ class Convore(object):
     @synchronized
     def get_group_topics(self, group_id):
         result = {}
-        url = config['TOPICS_URL'].format(group_id)
+        url = '/api/groups/{0}/topics.json'.format(group_id)
         response = self._connection.request('GET', url)
         for topic in response.get('topics', []):
             topic['group'] = group_id
@@ -86,7 +89,7 @@ class Convore(object):
 
     @synchronized
     def get_topic_messages(self, topic_id):
-        url = config['TOPIC_MESSAGES_URL'].format(topic_id)
+        url = '/api/topics/{0}/messages.json'.format(topic_id)
         messages = self._connection.request('GET', url).get('messages', [])
 
         topic = self.get_topics().get(topic_id, {})
@@ -100,10 +103,9 @@ class Convore(object):
 
     @synchronized
     def send_message(self, topic, msg):
-        data = msg.encode(config['NETWORK_ENCODING'], 'replace')
-        self._connection.request('POST',
-                                 config['CREATE_MSG_URL'].format(topic),
-                                 params={'message': data})
+        url = '/api/topics/{0}/messages/create.json'.format(topic)
+        data = msg.encode(NETWORK_ENCODING, 'replace')
+        self._connection.request('POST', url, params={'message': data})
 
 
     @synchronized
@@ -144,7 +146,7 @@ class Connection(object):
         # storing them, we will turn them into arguments
         login, password = get_passwd()
         self.username = login
-        self.http = HTTPSConnection(config['HOSTNAME'])
+        self.http = HTTPSConnection('convore.com')
         self._headers = {
             b'Authorization': authheader(login, password),
         }
@@ -192,7 +194,7 @@ class Connection(object):
             raise NetworkError('server error: {0}'.format(status_msg))
 
         try:
-            data = r.read().decode(config['NETWORK_ENCODING'])
+            data = r.read().decode(NETWORK_ENCODING)
             res = json.loads(data)
             debug('response in JSON\n{msg}'.format(
                 msg=json.dumps(res, ensure_ascii=False, indent=4)))
@@ -227,18 +229,19 @@ class Live(Thread):
         # XXX: Wait for the command line to initialize
         time.sleep(1.0)
 
+        url = '/api/live.json'
+        headers = {}
+        timeout = 10
+
         with closing(self._connection):
-            headers = {}
             while True:
                 try:
-                    url = config['LIVE_URL']
                     event = self._connection.request('GET', url, headers)
                 except NetworkError, e:
-                    n = 10
                     error('{msg}, waiting for {n} secs...'.format(
                               msg=unicode(e),
-                              n=n))
-                    time.sleep(n)
+                              n=timeout))
+                    time.sleep(timeout)
                     continue
 
                 messages = event.get('messages', [])
@@ -254,6 +257,6 @@ class Live(Thread):
 
 def authheader(login, password):
     s = '%s:%s' % (login, password)
-    value = base64.b64encode(s.encode(config['NETWORK_ENCODING']))
+    value = base64.b64encode(s.encode(NETWORK_ENCODING))
     return b'Basic ' + value
 

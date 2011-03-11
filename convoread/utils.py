@@ -90,7 +90,7 @@ def get_passwd():
               " can't work without credentials")
         sys.exit(1)
     login = password = None
-    res = rc.authenticators(config['HOSTNAME'])
+    res = rc.authenticators('convore.com')
     if res:
         login, password = res[0].strip(), res[2].strip()
     return login, password
