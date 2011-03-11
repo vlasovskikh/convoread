@@ -61,28 +61,30 @@ options:
 
   -h --help     show help
   --debug       show debug messages
-  --notify      show desktop notifications
+  --no-notify   disable desktop notifications
 '''.format(version=__version__)
     print(msg.encode(ENCODING), file=sys.stderr)
 
 
 def main():
     try:
-        opts, args = getopt(sys.argv[1:], b'h', [b'help', b'debug', b'notify'])
+        opts, args = getopt(sys.argv[1:],
+                            b'h',
+                            [b'help', b'debug', b'no-notify'])
     except GetoptError, e:
         error(bytes(e).decode(ENCODING, errors='replace'))
         usage()
         sys.exit(1)
 
-    notify = False
+    notify = True
     for opt, arg in opts:
         if opt in [b'-h', b'--help']:
             usage()
             sys.exit(0)
         elif opt == b'--debug':
             config['DEBUG'] = True
-        elif opt == b'--notify':
-            notify = True
+        elif opt == b'--no-notify':
+            notify = False
 
     with closing(Convore()) as convore:
         console = Console(convore)
