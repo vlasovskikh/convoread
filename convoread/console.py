@@ -148,12 +148,29 @@ class Console(object):
             output(_format_message(message))
 
 
+    def cmd_m(self, group_slug=None):
+        try:
+            if group_slug:
+                groups = [g for g in self.convore.get_groups().values()
+                            if g.get('slug') == group_slug]
+                if not groups:
+                    error('group "{0}" not found'.format(group_slug))
+                    return
+                group = groups[0]
+                self.convore.mark_group_read(group.get('id'))
+            else:
+                self.convore.mark_all_read()
+        except NetworkError, e:
+            error(unicode(e))
+
+
     def cmd_help(self):
         output('''\
 commands:
 
   /ts [name]  list unread topics or topics in group <name>
   /t [num]    set the posting topic to <num> and list recent messages
+  /m [name]   mark messages as read (all or in group <name>)
   /help       show help on commands
   /q          quit
   <text>      post a new message to the selected topic

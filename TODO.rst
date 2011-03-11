@@ -7,5 +7,4 @@ TODO List
 - Colorize the output
 - Group/topic autocompletion for ``/t``
 - ``@username`` autocompletion
-- A command to mark messages in topics/groups as read
 

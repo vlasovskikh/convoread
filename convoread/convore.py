@@ -120,6 +120,23 @@ class Convore(object):
 
 
     @synchronized
+    def mark_all_read(self):
+        url = '/api/account/mark_read.json'
+        self._connection.request('POST', url)
+        for topic in self.get_topics().values():
+            topic['unread'] = 0
+
+
+    @synchronized
+    def mark_group_read(self, group_id):
+        url = '/api/groups/{0}/mark_read.json'.format(group_id)
+        self._connection.request('POST', url)
+        for topic in self.get_topics().values():
+            if topic.get('group') == group_id:
+                topic['unread'] = 0
+
+
+    @synchronized
     def _handle_live_update(self, message):
         if message.get('kind') != 'message':
             return
